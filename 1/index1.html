@@ -36,6 +36,13 @@
             background-color: #f2f2f2;
         }
 
+        .upload-placeholder {
+            border: 1px dashed #999999;
+            padding: 30px;
+            margin: 20px 0 35px;
+            text-align: center;
+        }
+
     </style>
 </head>
 
@@ -53,14 +60,21 @@
     <h3>Part 1A - Handwritten Analytical Solution</h3>
 
     <p>
-        The handwritten calculus solution is included below.
-        You can also <a href="./media/part1-handwritten.png">open the full-size PNG</a>.
+        The handwritten calculus solution is included below in two images.
     </p>
 
+    <h4>Handwritten Solution - Page 1</h4>
     <img
         class="plot"
-        src="./media/part1-handwritten.png"
-        alt="Handwritten analytical solution for Part 1"
+        src="./media/part1-handwritten-1.png"
+        alt="First handwritten page of the analytical solution for Part 1"
+    >
+
+    <h4>Handwritten Solution - Page 2</h4>
+    <img
+        class="plot"
+        src="./media/part1-handwritten-2.png"
+        alt="Second handwritten page of the analytical solution for Part 1"
     >
 
     <h3>Analytical Method</h3>
@@ -85,7 +99,7 @@
     </p>
 
     <p>
-        The handwritten solution above shows the algebraic work. The table
+        The handwritten solutions above show the algebraic work. The table
         below reports the closest point and minimum distance for each required point.
     </p>
 
@@ -163,8 +177,82 @@
     <h2>Part 2 - Function Fitting</h2>
 
     <p>
-        This section investigates fitting a line and
-        parabola to a set of data points.
+        This section fits a line and a parabola to the data points
+        (0, 0.5), (2, 3.5), (1, 1.5), and (3, 7.5).
+    </p>
+
+    <h3>Part 2A - Handwritten Analytical Solution</h3>
+
+    <p>
+        Add your handwritten Part 2 solution as
+        <code>part2-handwritten.png</code> inside the <code>media</code> folder.
+    </p>
+
+    <div class="upload-placeholder">
+        Your handwritten Part 2 solution will appear here after you add
+        <code>part2-handwritten.png</code> to the <code>media</code> folder.
+    </div>
+
+    <h3>Analytical and Numerical Results</h3>
+
+    <p>
+        For a model y = &Sigma;theta<sub>j</sub>&phi;<sub>j</sub>(x), the mean squared error is
+    </p>
+
+    <p>
+        MSE = (1/n) &Sigma;(y<sub>predicted</sub> - y<sub>actual</sub>)<sup>2</sup>.
+    </p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Model</th>
+                <th>Analytical fit</th>
+                <th>Newton-Raphson fit</th>
+                <th>MSE</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Line</td>
+                <td>y = 2.3x - 0.2</td>
+                <td>y = 2.3x - 0.2</td>
+                <td>0.575</td>
+            </tr>
+            <tr>
+                <td>Parabola</td>
+                <td>y = 0.75x<sup>2</sup> + 0.05x + 0.55</td>
+                <td>y = 0.75x<sup>2</sup> + 0.05x + 0.55</td>
+                <td>0.0125</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <p>
+        The analytical solution uses the normal equations
+        (X<sup>T</sup>X)&theta; = X<sup>T</sup>y. The numerical solution uses
+        multivariable Newton-Raphson with the gradient and Hessian of the MSE.
+    </p>
+
+    <h3>Intermediate Optimization Plots</h3>
+
+    <h4>Line Fit</h4>
+    <img
+        class="plot"
+        src="./media/part2-line-fit.png"
+        alt="Line fitted to the data points with Newton-Raphson steps"
+    >
+
+    <h4>Parabola Fit</h4>
+    <img
+        class="plot"
+        src="./media/part2-parabola-fit.png"
+        alt="Parabola fitted to the data points with Newton-Raphson steps"
+    >
+
+    <p>
+        The complete Part 2 Python source code is available here:
+        <a href="./part2.py">part2.py</a>.
     </p>
 
 </body>
