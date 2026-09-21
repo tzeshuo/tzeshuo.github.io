@@ -19,6 +19,23 @@
             margin: 20px 0 35px;
         }
 
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 20px 0 35px;
+        }
+
+        th,
+        td {
+            border: 1px solid #cccccc;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
     </style>
 </head>
 
@@ -45,6 +62,49 @@
         src="./media/part1-handwritten.png"
         alt="Handwritten analytical solution for Part 1"
     >
+
+    <h3>Analytical Method</h3>
+
+    <p>
+        For a point (x<sub>0</sub>, y<sub>0</sub>) and the parabola
+        f(x) = x<sup>2</sup> + 5, the squared distance is
+    </p>
+
+    <p>
+        D(x) = (x - x<sub>0</sub>)<sup>2</sup>
+        + (x<sup>2</sup> + 5 - y<sub>0</sub>)<sup>2</sup>.
+    </p>
+
+    <p>
+        Differentiating and setting the derivative equal to zero gives
+    </p>
+
+    <p>
+        D'(x) = 2(x - x<sub>0</sub>)
+        + 4x(x<sup>2</sup> + 5 - y<sub>0</sub>) = 0.
+    </p>
+
+    <p>
+        The handwritten solution above shows the algebraic work. The table
+        below reports the closest point and minimum distance for each required point.
+    </p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Given point</th>
+                <th>Closest point on y = x<sup>2</sup> + 5</th>
+                <th>Minimum distance</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td>(0, 0)</td><td>(0.000000, 5.000000)</td><td>5.000000</td></tr>
+            <tr><td>(-4, 0)</td><td>(-0.355470, 5.126359)</td><td>6.289845</td></tr>
+            <tr><td>(-8, 0)</td><td>(-0.672078, 5.451689)</td><td>9.133420</td></tr>
+            <tr><td>(2, 0)</td><td>(0.180745, 5.032669)</td><td>5.351396</td></tr>
+            <tr><td>(6, 0)</td><td>(0.519904, 5.270300)</td><td>7.603125</td></tr>
+        </tbody>
+    </table>
 
     <h3>Numerical Method Results</h3>
 
@@ -94,6 +154,11 @@
         src="./media/logarithmic-golden-section.png"
         alt="Golden-section search iterations for the logarithmic function"
     >
+
+    <p>
+        The complete Python source code is available here:
+        <a href="../assgn_1.py">assgn_1.py</a>.
+    </p>
 
     <h2>Part 2 - Function Fitting</h2>
 
