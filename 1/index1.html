@@ -2,6 +2,23 @@
 <html>
 <head>
     <title>SYDE 572 - Assignment 1</title>
+    <style>
+        body {
+            max-width: 1000px;
+            margin: 40px auto;
+            padding: 0 20px;
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+        }
+
+        .plot {
+            display: block;
+            width: 100%;
+            max-width: 850px;
+            height: auto;
+            margin: 20px 0 35px;
+        }
+    </style>
 </head>
 
 <body>
@@ -14,6 +31,55 @@
         This section investigates the shortest distance
         between a point and a mathematical function.
     </p>
+
+    <h3>Numerical Method Results</h3>
+
+    <p>
+        The following plots show the Newton-Raphson and golden-section
+        iterations for the parabola and additional functions.
+    </p>
+
+    <h4>Parabola: Newton-Raphson</h4>
+    <img
+        class="plot"
+        src="./media/parabola-newton.png"
+        alt="Newton-Raphson iterations for the parabola"
+    >
+
+    <h4>Parabola: Golden-Section Search</h4>
+    <img
+        class="plot"
+        src="./media/parabola-golden-section.png"
+        alt="Golden-section search iterations for the parabola"
+    >
+
+    <h4>Exponential Function: Newton-Raphson</h4>
+    <img
+        class="plot"
+        src="./media/exponential-newton.png"
+        alt="Newton-Raphson iterations for the exponential function"
+    >
+
+    <h4>Exponential Function: Golden-Section Search</h4>
+    <img
+        class="plot"
+        src="./media/exponential-golden-section.png"
+        alt="Golden-section search iterations for the exponential function"
+    >
+
+    <h4>Logarithmic Function: Newton-Raphson</h4>
+    <img
+        class="plot"
+        src="./media/logarithmic-newton.png"
+        alt="Newton-Raphson iterations for the logarithmic function"
+    >
+
+    <h4>Logarithmic Function: Golden-Section Search</h4>
+    <img
+        class="plot"
+        src="./media/logarithmic-golden-section.png"
+        alt="Golden-section search iterations for the logarithmic function"
+    >
 
     <h2>Part 2 - Function Fitting</h2>
 
