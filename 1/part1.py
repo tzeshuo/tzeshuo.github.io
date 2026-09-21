@@ -1,6 +1,7 @@
 """Part 1: shortest distance from a point to a function."""
 
 import math
+from pathlib import Path
 
 import matplotlib.pyplot as plt
 
@@ -71,7 +72,7 @@ def _sample_values(start, end, count=500):
     return [start + index * step for index in range(count)]
 
 
-def plot_newton_raphson(x0, y0, f, iterations, x_limits, title):
+def plot_newton_raphson(x0, y0, f, iterations, x_limits, title, filename):
     x_values = _sample_values(*x_limits)
     y_values = [f(value) for value in x_values]
     iteration_y = [f(value) for value in iterations]
@@ -87,9 +88,11 @@ def plot_newton_raphson(x0, y0, f, iterations, x_limits, title):
     plt.grid(True, alpha=0.3)
     plt.legend()
     plt.tight_layout()
+    plt.savefig(filename, dpi=200)
+    plt.close()
 
 
-def plot_golden_section(x0, y0, f, iterations, x_limits, title):
+def plot_golden_section(x0, y0, f, iterations, x_limits, title, filename):
     x_values = _sample_values(*x_limits)
     y_values = [f(value) for value in x_values]
     left, right = iterations[-1][:2]
@@ -108,6 +111,8 @@ def plot_golden_section(x0, y0, f, iterations, x_limits, title):
     plt.grid(True, alpha=0.3)
     plt.legend()
     plt.tight_layout()
+    plt.savefig(filename, dpi=200)
+    plt.close()
 
 
 def parabola(x):
@@ -156,7 +161,7 @@ def print_result(method, function_name, point, result, function):
 
 def run_case(
     function_name, function, derivative, second_derivative, point,
-    initial_guess, interval, plot_limits, make_plots=False
+    initial_guess, interval, plot_limits, plot_name=None, make_plots=False
 ):
     x0, y0 = point
     newton_result = newton_raphson(
@@ -168,11 +173,14 @@ def run_case(
     print_result("Golden-section", function_name, point, golden_result, function)
 
     if make_plots:
+        media_folder = Path(__file__).parent / "media"
         plot_newton_raphson(
-            x0, y0, function, newton_result[2], plot_limits, function_name
+            x0, y0, function, newton_result[2], plot_limits, function_name,
+            media_folder / f"{plot_name}-newton.png"
         )
         plot_golden_section(
-            x0, y0, function, golden_result[2], plot_limits, function_name
+            x0, y0, function, golden_result[2], plot_limits, function_name,
+            media_folder / f"{plot_name}-golden-section.png"
         )
 
 
@@ -184,17 +192,19 @@ def main():
         run_case(
             "y = x^2 + 5", parabola, parabola_derivative,
             parabola_second_derivative, point, 0.0, (-10, 10), (-10, 10),
-            make_plots=point == (-4, 0)
+            plot_name="parabola", make_plots=point == (-4, 0)
         )
 
     # The positive interval for log(x) keeps every evaluation in its domain.
     run_case(
         "y = exp(x)", exponential, exponential_derivative,
-        exponential_second_derivative, (2, 0), 0.0, (-10, 10), (-3, 3), True
+        exponential_second_derivative, (2, 0), 0.0, (-10, 10), (-3, 3),
+        plot_name="exponential", make_plots=True
     )
     run_case(
         "y = log(x)", logarithmic, logarithmic_derivative,
-        logarithmic_second_derivative, (2, 0), 1.0, (0.1, 5), (0.1, 5), True
+        logarithmic_second_derivative, (2, 0), 1.0, (0.1, 5), (0.1, 5),
+        plot_name="logarithmic", make_plots=True
     )
 
     plt.show()
