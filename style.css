@@ -1,0 +1,149 @@
+:root {
+    --ink: #263238;
+    --muted: #607d86;
+    --accent: #176b68;
+    --accent-soft: #dceceb;
+    --paper: #ffffff;
+    --page: #eef2f1;
+    --line: #cbd7d6;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 56px 28px 80px;
+    background: var(--page);
+    color: var(--ink);
+    font-family: "Trebuchet MS", Verdana, sans-serif;
+    line-height: 1.65;
+}
+
+h1,
+h2,
+h3,
+h4 {
+    line-height: 1.2;
+}
+
+h1 {
+    margin: 0 0 12px;
+    color: var(--accent);
+    font-family: Georgia, serif;
+    font-size: clamp(2rem, 5vw, 3.2rem);
+    letter-spacing: 0;
+}
+
+h2 {
+    margin: 52px 0 16px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--accent);
+    color: var(--ink);
+    font-family: Georgia, serif;
+    font-size: 1.8rem;
+}
+
+h3 {
+    margin-top: 36px;
+    color: var(--accent);
+    font-size: 1.25rem;
+}
+
+h4 {
+    margin: 28px 0 8px;
+    color: var(--muted);
+    font-size: 1rem;
+    letter-spacing: 0.03em;
+}
+
+p {
+    max-width: 72ch;
+}
+
+a {
+    color: var(--accent);
+    font-weight: 700;
+}
+
+a:hover {
+    color: #0d4c4a;
+}
+
+code {
+    padding: 2px 5px;
+    border-radius: 3px;
+    background: var(--accent-soft);
+    color: #174b4a;
+    font-size: 0.9em;
+}
+
+.plot {
+    display: block;
+    width: 100%;
+    max-width: 850px;
+    height: auto;
+    margin: 18px 0 36px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: var(--paper);
+    box-shadow: 0 5px 16px rgba(38, 50, 56, 0.08);
+}
+
+table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 20px 0 35px;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: var(--paper);
+    box-shadow: 0 4px 12px rgba(38, 50, 56, 0.05);
+}
+
+th,
+td {
+    border-bottom: 1px solid var(--line);
+    padding: 8px;
+    text-align: left;
+}
+
+th {
+    border-bottom: 2px solid var(--accent);
+    background-color: var(--accent-soft);
+    color: #174b4a;
+}
+
+tbody tr:nth-child(even) {
+    background-color: #f7faf9;
+}
+
+.upload-placeholder {
+    max-width: 850px;
+    border: 1px dashed var(--muted);
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.6);
+    padding: 30px;
+    margin: 20px 0 35px;
+    color: var(--muted);
+    text-align: center;
+}
+
+@media (max-width: 640px) {
+    body {
+        padding: 32px 16px 56px;
+    }
+
+    h2 {
+        margin-top: 40px;
+        font-size: 1.5rem;
+    }
+
+    table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+}
