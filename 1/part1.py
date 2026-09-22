@@ -1,4 +1,3 @@
-"""Part 1: shortest distance from a point to a function."""
 
 import math
 from pathlib import Path
@@ -9,7 +8,6 @@ import matplotlib.pyplot as plt
 def newton_raphson(
     x0, y0, f, df, ddf, initial_guess=0.0, tolerance=1e-7, max_iter=100
 ):
-    """Find a stationary point of the squared distance with Newton-Raphson."""
     x = initial_guess
     iterations = [x]
 
