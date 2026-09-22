@@ -95,61 +95,42 @@ def plot_golden_section(x0, y0, f, iterations, x_limits, title, filename):
     y_values = [f(value) for value in x_values]
     left, right = iterations[-1][:2]
     best_x = (left + right) / 2
-    interval_widths = [right - left for left, right, _, _ in iterations]
-    search_numbers = list(range(1, len(iterations) + 1))
+    plt.figure(figsize=(8, 6))
+    plt.plot(x_values, y_values, label="Function")
+    plt.scatter(x0, y0, color="black", zorder=3, label="Given point")
+    plt.scatter(best_x, f(best_x), color="tab:red", zorder=3, label="Closest point")
 
-    figure, (curve_axis, width_axis) = plt.subplots(
-        2,
-        1,
-        figsize=(8, 8),
-        gridspec_kw={"height_ratios": [3, 2]},
-    )
+    # Show the first three and final search intervals as orange regions.
+    interval_indices = [0, 1, 2, len(iterations) - 1]
+    interval_labels = ["1st search", "2nd search", "3rd search", "Final"]
+    interval_alphas = [0.08, 0.12, 0.16, 0.22]
+    axis = plt.gca()
 
-    # Top panel: function, given point, closest point, and final boundaries.
-    curve_axis.plot(x_values, y_values, label="Function")
-    curve_axis.scatter(x0, y0, color="black", zorder=3, label="Given point")
-    curve_axis.scatter(
-        best_x,
-        f(best_x),
-        color="tab:red",
-        zorder=3,
-        label="Closest point",
-    )
-    curve_axis.axvline(left, color="tab:orange", linestyle="--", label="Final left boundary")
-    curve_axis.axvline(right, color="tab:orange", linestyle="--", label="Final right boundary")
-    curve_axis.set_xlabel("x")
-    curve_axis.set_ylabel("y")
-    curve_axis.set_title(f"Golden-section search: {title}")
-    curve_axis.grid(True, alpha=0.3)
-    curve_axis.legend()
-
-    # Bottom panel: interval width decreases as the search progresses.
-    width_axis.plot(search_numbers, interval_widths, color="tab:orange")
-    selected_indices = sorted(set([0, 1, 2, len(iterations) - 1]))
-    selected_labels = ["1st", "2nd", "3rd", "Final"]
-    for index, label in zip(selected_indices, selected_labels):
-        width_axis.scatter(
-            search_numbers[index],
-            interval_widths[index],
-            color="tab:red",
-            zorder=3,
-        )
-        width_axis.annotate(
+    for index, label, alpha in zip(
+        interval_indices, interval_labels, interval_alphas
+    ):
+        left, right = iterations[index][:2]
+        plt.axvspan(left, right, color="tab:orange", alpha=alpha)
+        axis.text(
+            (left + right) / 2,
+            0.93 - 0.07 * interval_labels.index(label),
             label,
-            (search_numbers[index], interval_widths[index]),
-            xytext=(0, 8),
-            textcoords="offset points",
+            transform=axis.get_xaxis_transform(),
             ha="center",
+            va="top",
+            fontsize=9,
             color="#7a4300",
+            bbox={"facecolor": "white", "alpha": 0.75, "edgecolor": "none"},
         )
-    width_axis.set_xlabel("Search number")
-    width_axis.set_ylabel("Interval width")
-    width_axis.set_title("The search interval gets smaller")
-    width_axis.grid(True, alpha=0.3)
 
-    figure.tight_layout()
-    figure.savefig(filename, dpi=200)
-    plt.close(figure)
+    plt.xlabel("x")
+    plt.ylabel("y")
+    plt.title(f"Golden-section search: {title}")
+    plt.grid(True, alpha=0.3)
+    plt.legend()
+    plt.tight_layout()
+    plt.savefig(filename, dpi=200)
+    plt.close()
 
 
 def parabola(x):
