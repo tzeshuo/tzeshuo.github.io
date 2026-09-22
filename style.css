@@ -33,8 +33,14 @@ h1 {
     margin: 0 0 12px;
     color: var(--accent);
     font-family: Georgia, serif;
-    font-size: clamp(2rem, 5vw, 3.2rem);
+    font-size: 2.8rem;
     letter-spacing: 0;
+}
+
+.subtitle {
+    margin-top: -4px;
+    color: var(--muted);
+    font-size: 1.05rem;
 }
 
 h2 {
@@ -139,6 +145,10 @@ tbody tr:nth-child(even) {
     h2 {
         margin-top: 40px;
         font-size: 1.5rem;
+    }
+
+    h1 {
+        font-size: 2.2rem;
     }
 
     table {
