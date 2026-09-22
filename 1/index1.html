@@ -182,11 +182,16 @@
     <h3>Analytical Handwritten and Numerical Results</h3>
 
     <p>
-        For a model y = &Sigma;theta<sub>j</sub>&phi;<sub>j</sub>(x), the mean squared error is
+        For the line y = mx + b, the MSE is the average of the four squared
+        prediction errors. In the handwritten solution, the partial derivatives
+        with respect to m and b are set equal to zero to find the best line.
     </p>
 
     <p>
-        MSE = (1/n) &Sigma;(y<sub>predicted</sub> - y<sub>actual</sub>)<sup>2</sup>.
+        For the parabola y = ax<sup>2</sup> + bx + c, the MSE is again the
+        average of the four squared prediction errors. The handwritten solution
+        differentiates this MSE with respect to a, b, and c, then sets all three
+        derivatives equal to zero.
     </p>
 
     <table>
@@ -215,9 +220,9 @@
     </table>
 
     <p>
-        The analytical solution uses the normal equations
-        (X<sup>T</sup>X)&theta; = X<sup>T</sup>y. The numerical solution uses
-        multivariable Newton-Raphson with the gradient and Hessian of the MSE.
+        The analytical results in the images come from explicitly expanding the
+        MSE and solving the derivative equations. The Python results use
+        multivariable Newton-Raphson with the MSE gradient and Hessian.
     </p>
 
     <h3>Intermediate Optimization Plots</h3>
