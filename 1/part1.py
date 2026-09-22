@@ -100,9 +100,30 @@ def plot_golden_section(x0, y0, f, iterations, x_limits, title, filename):
     plt.plot(x_values, y_values, label="Function")
     plt.scatter(x0, y0, color="black", zorder=3, label="Given point")
     plt.scatter(best_x, f(best_x), color="tab:red", zorder=3, label="Closest point")
-    step = max(1, len(iterations) // 8)
-    for left, right, _, _ in iterations[::step]:
-        plt.axvspan(left, right, color="tab:orange", alpha=0.08)
+
+    # Label the first three and final search intervals directly on the graph.
+    interval_indices = [0, 1, 2, len(iterations) - 1]
+    interval_labels = ["1st search", "2nd search", "3rd search", "Final"]
+    interval_alphas = [0.08, 0.12, 0.16, 0.22]
+    axis = plt.gca()
+
+    for index, label, alpha in zip(
+        interval_indices, interval_labels, interval_alphas
+    ):
+        left, right = iterations[index][:2]
+        plt.axvspan(left, right, color="tab:orange", alpha=alpha)
+        axis.text(
+            (left + right) / 2,
+            0.93 - 0.07 * interval_labels.index(label),
+            label,
+            transform=axis.get_xaxis_transform(),
+            ha="center",
+            va="top",
+            fontsize=9,
+            color="#7a4300",
+            bbox={"facecolor": "white", "alpha": 0.75, "edgecolor": "none"},
+        )
+
     plt.xlabel("x")
     plt.ylabel("y")
     plt.title(f"Golden-section search: {title}")
