@@ -171,10 +171,12 @@ def logarithmic_second_derivative(x):
 
 def print_result(method, function_name, point, result, function):
     distance, closest_x = result[:2]
+    iteration_count = len(result[2]) - 1
     print(f"{function_name} - {method}")
     print(f"  Given point: {point}")
     print(f"  Closest point: ({closest_x:.10f}, {function(closest_x):.10f})")
     print(f"  Shortest distance: {distance:.10f}\n")
+    print(f"  Iterations: {iteration_count}\n")
 
 
 def run_case(

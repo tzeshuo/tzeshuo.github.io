@@ -267,6 +267,7 @@ def main():
     print(f"m = {m:.10f}")
     print(f"b = {b:.10f}")
     print(f"MSE = {line_mse(m, b):.10f}")
+    print(f"Iterations: {len(line_iterations) - 1}")
     print()
 
     print("Numerical parabola fit: y = a*x^2 + b*x + c")
@@ -274,6 +275,7 @@ def main():
     print(f"b = {b_parabola:.10f}")
     print(f"c = {c:.10f}")
     print(f"MSE = {parabola_mse(a, b_parabola, c):.10f}")
+    print(f"Iterations: {len(parabola_iterations) - 1}")
 
     plot_line_fit(
         m,

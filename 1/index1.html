@@ -89,6 +89,31 @@
         iterations for the parabola and additional functions.
     </p>
 
+    <h4>Total Numerical Iterations</h4>
+    <p>
+        The totals below count update steps, excluding the initial guess or
+        initial search interval.
+    </p>
+    <table>
+        <thead>
+            <tr>
+                <th>Function</th>
+                <th>Given point</th>
+                <th>Newton-Raphson updates</th>
+                <th>Golden-section updates</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td>y = x<sup>2</sup> + 5</td><td>(0, 0)</td><td>1</td><td>40</td></tr>
+            <tr><td>y = x<sup>2</sup> + 5</td><td>(-4, 0)</td><td>4</td><td>40</td></tr>
+            <tr><td>y = x<sup>2</sup> + 5</td><td>(-8, 0)</td><td>5</td><td>40</td></tr>
+            <tr><td>y = x<sup>2</sup> + 5</td><td>(2, 0)</td><td>4</td><td>40</td></tr>
+            <tr><td>y = x<sup>2</sup> + 5</td><td>(6, 0)</td><td>4</td><td>40</td></tr>
+            <tr><td>y = exp(x)</td><td>(2, 0)</td><td>5</td><td>40</td></tr>
+            <tr><td>y = log(x)</td><td>(2, 0)</td><td>5</td><td>37</td></tr>
+        </tbody>
+    </table>
+
     <h4>Parabola: Newton-Raphson</h4>
     <img
         class="plot"
@@ -226,6 +251,20 @@
     </p>
 
     <h3>Intermediate Optimization Plots</h3>
+
+    <h4>Total Numerical Iterations</h4>
+    <p>
+        Both multivariable Newton-Raphson fits converged in 2 update steps.
+    </p>
+    <table>
+        <thead>
+            <tr><th>Model</th><th>Newton-Raphson updates</th></tr>
+        </thead>
+        <tbody>
+            <tr><td>Line: y = mx + b</td><td>2</td></tr>
+            <tr><td>Parabola: y = ax<sup>2</sup> + bx + c</td><td>2</td></tr>
+        </tbody>
+    </table>
 
     <h4>Line Fit</h4>
     <img
