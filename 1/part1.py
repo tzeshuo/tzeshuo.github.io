@@ -269,11 +269,11 @@ def main():
     points = [(0, 0), (-4, 0), (-8, 0), (2, 0), (6, 0)]
     print("PART 1: y = x^2 + 5\n")
 
-    for point in points:
+    for point_index, point in enumerate(points, start=1):
         run_case(
             "y = x^2 + 5", parabola, parabola_derivative,
             parabola_second_derivative, point, 0.0, (-10, 10), (-10, 10),
-            plot_name="parabola", make_plots=point == (-4, 0)
+            plot_name=f"parabola-point-{point_index}", make_plots=True
         )
 
     # The positive interval for log(x) keeps every evaluation in its domain.

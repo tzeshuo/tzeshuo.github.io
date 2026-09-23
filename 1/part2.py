@@ -183,6 +183,8 @@ def fit_parabola_newton():
 
 def plot_line_fit(m, b, iterations, filename):
     x_values = [index / 20 for index in range(61)]
+    update_count = len(iterations) - 1
+    final_mse = line_mse(m, b)
 
     plt.figure(figsize=(8, 6))
     plt.scatter(
@@ -195,16 +197,23 @@ def plot_line_fit(m, b, iterations, filename):
 
     for index, (iteration_m, iteration_b) in enumerate(iterations[:-1]):
         y_values = [line(x, iteration_m, iteration_b) for x in x_values]
+        label = "Initial fit" if index == 0 else f"After update {index}"
         plt.plot(
             x_values,
             y_values,
             "--",
             alpha=0.5,
-            label=f"Newton iteration {index}",
+            label=label,
         )
 
     final_y_values = [line(x, m, b) for x in x_values]
-    plt.plot(x_values, final_y_values, color="tab:red", linewidth=2, label="Final fit")
+    plt.plot(
+        x_values,
+        final_y_values,
+        color="tab:red",
+        linewidth=2,
+        label=f"Final fit (MSE = {final_mse:.4f}, {update_count} updates)",
+    )
     plt.xlabel("x")
     plt.ylabel("y")
     plt.title("Numerical line fit: y = m*x + b")
@@ -217,6 +226,8 @@ def plot_line_fit(m, b, iterations, filename):
 
 def plot_parabola_fit(a, b, c, iterations, filename):
     x_values = [index / 20 for index in range(61)]
+    update_count = len(iterations) - 1
+    final_mse = parabola_mse(a, b, c)
 
     plt.figure(figsize=(8, 6))
     plt.scatter(
@@ -232,16 +243,23 @@ def plot_parabola_fit(a, b, c, iterations, filename):
             parabola(x, iteration_a, iteration_b, iteration_c)
             for x in x_values
         ]
+        label = "Initial fit" if index == 0 else f"After update {index}"
         plt.plot(
             x_values,
             y_values,
             "--",
             alpha=0.5,
-            label=f"Newton iteration {index}",
+            label=label,
         )
 
     final_y_values = [parabola(x, a, b, c) for x in x_values]
-    plt.plot(x_values, final_y_values, color="tab:red", linewidth=2, label="Final fit")
+    plt.plot(
+        x_values,
+        final_y_values,
+        color="tab:red",
+        linewidth=2,
+        label=f"Final fit (MSE = {final_mse:.4f}, {update_count} updates)",
+    )
     plt.xlabel("x")
     plt.ylabel("y")
     plt.title("Numerical parabola fit: y = a*x^2 + b*x + c")
