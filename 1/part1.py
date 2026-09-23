@@ -74,12 +74,37 @@ def plot_newton_raphson(x0, y0, f, iterations, x_limits, title, filename):
     x_values = _sample_values(*x_limits)
     y_values = [f(value) for value in x_values]
     iteration_y = [f(value) for value in iterations]
+    closest_x = iterations[-1]
+    closest_y = f(closest_x)
+    distance = math.hypot(closest_x - x0, closest_y - y0)
+    update_count = len(iterations) - 1
 
     plt.figure(figsize=(8, 6))
     plt.plot(x_values, y_values, label="Function")
     plt.scatter(x0, y0, color="black", zorder=3, label="Given point")
-    plt.scatter(iterations, iteration_y, color="tab:red", zorder=3, label="Newton iterates")
+    plt.plot(
+        [x0, closest_x],
+        [y0, closest_y],
+        color="tab:blue",
+        linewidth=2,
+        label=f"Shortest distance = {distance:.4f}",
+    )
+    plt.scatter(
+        iterations,
+        iteration_y,
+        color="tab:red",
+        zorder=3,
+        label=f"Newton iterates ({update_count} updates)",
+    )
     plt.plot(iterations, iteration_y, "--", color="tab:red", alpha=0.7)
+    plt.scatter(
+        closest_x,
+        closest_y,
+        color="tab:green",
+        edgecolor="black",
+        zorder=4,
+        label="Closest point",
+    )
     plt.xlabel("x")
     plt.ylabel("y")
     plt.title(f"Newton-Raphson: {title}")
@@ -95,10 +120,39 @@ def plot_golden_section(x0, y0, f, iterations, x_limits, title, filename):
     y_values = [f(value) for value in x_values]
     left, right = iterations[-1][:2]
     best_x = (left + right) / 2
+    best_y = f(best_x)
+    distance = math.hypot(best_x - x0, best_y - y0)
+    update_count = len(iterations) - 1
+    evaluation_x = [value for item in iterations for value in item[2:]]
+    evaluation_y = [f(value) for value in evaluation_x]
+
     plt.figure(figsize=(8, 6))
     plt.plot(x_values, y_values, label="Function")
     plt.scatter(x0, y0, color="black", zorder=3, label="Given point")
-    plt.scatter(best_x, f(best_x), color="tab:red", zorder=3, label="Closest point")
+    plt.plot(
+        [x0, best_x],
+        [y0, best_y],
+        color="tab:blue",
+        linewidth=2,
+        label=f"Shortest distance = {distance:.4f}",
+    )
+    plt.scatter(
+        evaluation_x,
+        evaluation_y,
+        color="tab:purple",
+        alpha=0.35,
+        s=18,
+        zorder=2,
+        label=f"Golden-section evaluations ({update_count} updates)",
+    )
+    plt.scatter(
+        best_x,
+        best_y,
+        color="tab:green",
+        edgecolor="black",
+        zorder=4,
+        label="Closest point",
+    )
 
     # Show the first three and final search intervals as orange regions.
     interval_indices = [0, 1, 2, len(iterations) - 1]
@@ -110,7 +164,14 @@ def plot_golden_section(x0, y0, f, iterations, x_limits, title, filename):
         interval_indices, interval_labels, interval_alphas
     ):
         left, right = iterations[index][:2]
-        plt.axvspan(left, right, color="tab:orange", alpha=alpha)
+        interval_label = "Search intervals" if index == 0 else None
+        plt.axvspan(
+            left,
+            right,
+            color="tab:orange",
+            alpha=alpha,
+            label=interval_label,
+        )
         axis.text(
             (left + right) / 2,
             0.93 - 0.07 * interval_labels.index(label),
