@@ -156,13 +156,10 @@ def plot_golden_section(x0, y0, f, iterations, x_limits, title, filename):
 
     # Show the first three and final search intervals as orange regions.
     interval_indices = [0, 1, 2, len(iterations) - 1]
-    interval_labels = ["1st search", "2nd search", "3rd search", "Final"]
     interval_alphas = [0.08, 0.12, 0.16, 0.22]
     axis = plt.gca()
 
-    for index, label, alpha in zip(
-        interval_indices, interval_labels, interval_alphas
-    ):
+    for index, alpha in zip(interval_indices, interval_alphas):
         left, right = iterations[index][:2]
         interval_label = "Search intervals" if index == 0 else None
         plt.axvspan(
@@ -171,17 +168,6 @@ def plot_golden_section(x0, y0, f, iterations, x_limits, title, filename):
             color="tab:orange",
             alpha=alpha,
             label=interval_label,
-        )
-        axis.text(
-            (left + right) / 2,
-            0.93 - 0.07 * interval_labels.index(label),
-            label,
-            transform=axis.get_xaxis_transform(),
-            ha="center",
-            va="top",
-            fontsize=9,
-            color="#7a4300",
-            bbox={"facecolor": "white", "alpha": 0.75, "edgecolor": "none"},
         )
 
     plt.xlabel("x")
