@@ -1,4 +1,3 @@
-"""Part 2: numerical fitting with multivariable Newton-Raphson."""
 
 from pathlib import Path
 
@@ -95,11 +94,6 @@ def fit_line_newton():
     return m, b, iterations
 
 
-# ============================================================
-# Numerical parabola fit: y = a*x^2 + b*x + c
-# ============================================================
-
-
 def fit_parabola_newton():
     """Fit the parabola using an explicit three-parameter Newton update."""
     a = 0.0
@@ -175,10 +169,6 @@ def fit_parabola_newton():
 
     return a, b, c, iterations
 
-
-# ============================================================
-# Plots of the intermediate Newton-Raphson fits
-# ============================================================
 
 
 def plot_line_fit(m, b, iterations, filename):
@@ -268,11 +258,6 @@ def plot_parabola_fit(a, b, c, iterations, filename):
     plt.tight_layout()
     plt.savefig(filename, dpi=200)
     plt.close()
-
-
-# ============================================================
-# Run the numerical methods
-# ============================================================
 
 
 def main():
