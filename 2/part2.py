@@ -123,7 +123,13 @@ def plot_part_f(validation_errors, lambda_values=LAMBDA_VALUES):
         lambda_values[positive],
         validation_errors[positive],
         "o-",
-        label=f"L2-regularized (λ=0 baseline: {validation_errors[0]:.2f})",
+        label="L2-regularized (90 basis functions)",
+    )
+    plt.axhline(
+        validation_errors[0],
+        color="tab:gray",
+        linestyle="--",
+        label=f"Unregularized baseline (λ=0: {validation_errors[0]:.2f})",
     )
     plt.xlabel("Regularization constant λ (log scale)")
     plt.ylabel("Average 10-fold validation RMS error")
@@ -147,30 +153,35 @@ def gaussian_regression_reg(x_train, y_train, num_basis=90, lambda_values=None, 
     rng = np.random.default_rng(seed)
     fold_indices = np.array_split(np.arange(len(y_train)), folds)
 
+    # Precompute fold design matrices and partitions once so all lambda values
+    # are evaluated on the exact same basis functions
+    fold_partitions = []
+    for validation_indices in fold_indices:
+        training_mask = np.ones(len(y_train), dtype=bool)
+        training_mask[validation_indices] = False
+        fold_x_train, fold_y_train = x_train[training_mask], y_train[training_mask]
+        fold_x_val, fold_y_val = x_train[validation_indices], y_train[validation_indices]
+
+        # Fit scaling on this fold's training partition only
+        mean, std = fit_standardizer(fold_x_train)
+        fold_x_train_std = standardize(fold_x_train, mean, std)
+        fold_x_val_std = standardize(fold_x_val, mean, std)
+
+        # Centers: choose 90 centers from the fold's 90 training points
+        fold_perm = rng.permutation(len(fold_x_train_std))
+        centers = fold_x_train_std[fold_perm[:num_basis]]
+
+        phi_train = gaussian_design_matrix(fold_x_train_std, centers, scale=scale)
+        phi_val = gaussian_design_matrix(fold_x_val_std, centers, scale=scale)
+
+        fold_partitions.append((phi_train, fold_y_train, phi_val, fold_y_val))
+
     average_errors = []
     for regularization in lambda_values:
         fold_errors = []
-        for validation_indices in fold_indices:
-            training_mask = np.ones(len(y_train), dtype=bool)
-            training_mask[validation_indices] = False
-            fold_x_train, fold_y_train = x_train[training_mask], y_train[training_mask]
-            fold_x_val, fold_y_val = x_train[validation_indices], y_train[validation_indices]
-
-            # Fit scaling on this fold's training partition only
-            mean, std = fit_standardizer(fold_x_train)
-            fold_x_train_std = standardize(fold_x_train, mean, std)
-            fold_x_val_std = standardize(fold_x_val, mean, std)
-
-            # Centers: choose 90 centers from the fold's 90 training points
-            fold_perm = rng.permutation(len(fold_x_train_std))
-            centers = fold_x_train_std[fold_perm[:num_basis]]
-
-            phi_train = gaussian_design_matrix(fold_x_train_std, centers, scale=scale)
-            phi_val = gaussian_design_matrix(fold_x_val_std, centers, scale=scale)
-
+        for phi_train, fold_y_train, phi_val, fold_y_val in fold_partitions:
             weights = fit_linear_regression(phi_train, fold_y_train, regularization)
             fold_errors.append(rms_error(phi_val @ weights, fold_y_val))
-
         average_errors.append(np.mean(fold_errors))
 
     validation_errors = np.array(average_errors)

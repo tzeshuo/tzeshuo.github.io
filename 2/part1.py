@@ -249,16 +249,16 @@ def main():
     print("-" * 52)
     print(f"{'w0':>8} | {'Bias':>10} | {std_weights[0]:>12.6f} | {unstd_weights[0]:>14.6f}")
     for idx, name in enumerate(FEATURE_NAMES):
-        w_label = f"w{idx+1} (x{idx})"
+        w_label = f"w{idx+1}"
         print(f"{w_label:>8} | {name:>10} | {std_weights[idx+1]:>12.6f} | {unstd_weights[idx+1]:>14.6f}")
 
     print("\nSpecific Assignment Questions:")
-    print(f"  - Weight for 6th feature RM (w5 in 0-based feature index / w6 with bias):")
+    print("  - 6th feature RM (w6, including bias w0; prompt: w5):")
     print(f"      Standardized:   {std_weights[6]:.6f}")
-    print(f"      Unstandardized: {unstd_weights[6]:.6f} ($/room)")
-    print(f"  - Weight for 8th feature DIS (w7 in 0-based feature index / w8 with bias):")
+    print(f"      Unstandardized: {unstd_weights[6]:.6f} ($1000s per room, ~$8,591)")
+    print("  - 8th feature DIS (w8, including bias w0; prompt: 8th feature):")
     print(f"      Standardized:   {std_weights[8]:.6f}")
-    print(f"      Unstandardized: {unstd_weights[8]:.6f} ($/unit distance)")
+    print(f"      Unstandardized: {unstd_weights[8]:.6f} ($1000s per distance unit, ~$7.63)")
 
     print("\n=====================================================================")
     print("Part 1(c): One-Dimensional Fits Using Feature 2 (ZN)")
