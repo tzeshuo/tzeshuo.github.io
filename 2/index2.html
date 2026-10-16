@@ -74,11 +74,11 @@
             <tr><td>w<sub>4</sub></td><td>x<sub>3</sub> (4<sup>th</sup>)</td><td>CHAS</td><td>0.000000</td><td>0.000000</td></tr>
             <tr><td>w<sub>5</sub></td><td>x<sub>4</sub> (5<sup>th</sup>)</td><td>NOX</td><td>1.002651</td><td>21.515396</td></tr>
             <tr style="font-weight: bold; background: rgba(0, 150, 255, 0.08);">
-                <td>w<sub>6</sub></td><td>x<sub>5</sub> (6<sup>th</sup>, prompt: w<sub>5</sub>)</td><td>RM (average rooms)</td><td>4.195634</td><td>+8.590961 ($/room)</td>
+                <td>w<sub>6</sub></td><td>x<sub>5</sub> (6<sup>th</sup>, prompt: w<sub>5</sub>)</td><td>RM (average rooms)</td><td>4.195634</td><td>+8.590961 ($1000s/room, ~$8,591)</td>
             </tr>
             <tr><td>w<sub>7</sub></td><td>x<sub>6</sub> (7<sup>th</sup>)</td><td>AGE</td><td>-2.166275</td><td>-0.079237</td></tr>
             <tr style="font-weight: bold; background: rgba(0, 150, 255, 0.08);">
-                <td>w<sub>8</sub></td><td>x<sub>7</sub> (8<sup>th</sup>, prompt: 8<sup>th</sup> feature)</td><td>DIS (distance to employment centres)</td><td>0.010715</td><td>+0.007627 ($/unit dist)</td>
+                <td>w<sub>8</sub></td><td>x<sub>7</sub> (8<sup>th</sup>, prompt: 8<sup>th</sup> feature)</td><td>DIS (distance to employment centres)</td><td>0.010715</td><td>+0.007627 ($1000s/unit, ~$7.63)</td>
             </tr>
             <tr><td>w<sub>9</sub></td><td>x<sub>8</sub> (9<sup>th</sup>)</td><td>RAD</td><td>-0.193778</td><td>-0.139906</td></tr>
             <tr><td>w<sub>10</sub></td><td>x<sub>9</sub> (10<sup>th</sup>)</td><td>TAX</td><td>-0.348631</td><td>-0.007630</td></tr>
@@ -111,7 +111,7 @@
     <ul>
         <li><strong>Degree 1:</strong> Training RMS = 5.6951, Test RMS = 9.3523. Fits a modest positive upward slope, capturing the weak linear trend.</li>
         <li><strong>Degree 3:</strong> Training RMS = 5.6649, Test RMS = 9.4341. Adds a slight curvature but performs almost identically to degree 1.</li>
-        <li><strong>Degree 8:</strong> Training RMS = 5.4772, Test RMS = 18.6450. Shows severe boundary instability (Runge's phenomenon), oscillating wildly to over 115 on the right edge and doubling the test error.</li>
+        <li><strong>Degree 8:</strong> Training RMS = 5.4772, Test RMS = 18.6450. Shows severe polynomial instability (Runge's phenomenon), arching wildly up to ~115 across the training data gap (between ZN = 28 and 75) and dipping below zero near the origin, doubling the test RMS error.</li>
     </ul>
     <div class="plot-group" style="grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));">
         <figure><figcaption>Degree 1</figcaption><img class="plot" src="./media/part1c_degree_1.png" alt="One-dimensional degree 1 polynomial regression"></figure>
