@@ -101,7 +101,7 @@ def part_b(x_train, y_train):
     return fit_linear_regression(phi, y_train)
 
 
-def plot_one_dimensional_fit(raw_train, y_train, raw_test, y_test, degree):
+def polynomial_regression_1d_vis(raw_train, y_train, raw_test, y_test, degree):
     """Part 1(c): use Boston's second feature (ZN) and plot its fitted curve."""
     mean, std = fit_standardizer(raw_train[:, None])
     train_x = standardize(raw_train[:, None], mean, std)
@@ -118,6 +118,9 @@ def plot_one_dimensional_fit(raw_train, y_train, raw_test, y_test, degree):
     plt.xlabel("ZN: proportion zoned for lots over 25,000 sq. ft.")
     plt.ylabel("MEDV ($1000s)")
     plt.title(f"Part 1(c): One-dimensional polynomial regression (degree {degree})")
+    # Keep the housing-value observations readable when high-degree extrapolation
+    # produces values far outside the target range.
+    plt.ylim(0, 60)
     plt.grid(True, alpha=0.3)
     plt.legend()
     plt.tight_layout()
@@ -126,7 +129,7 @@ def plot_one_dimensional_fit(raw_train, y_train, raw_test, y_test, degree):
     return train_error, test_error
 
 
-def cross_validate_regularization(raw_x, targets, degree=8, folds=10):
+def polynomial_regression_reg(raw_x, targets, degree=8, folds=10):
     """Return 10-fold average validation RMS errors for every L2 constant.
 
     Each fold learns its scaling only from the fold's training partition.
@@ -152,8 +155,12 @@ def cross_validate_regularization(raw_x, targets, degree=8, folds=10):
 def plot_part_d(validation_errors):
     positive = LAMBDA_VALUES > 0
     plt.figure(figsize=(8, 5))
-    plt.semilogx(LAMBDA_VALUES[positive], validation_errors[positive], "o-", label="L2-regularized models")
-    plt.axhline(validation_errors[0], color="tab:gray", linestyle="--", label="Unregularized (λ = 0)")
+    plt.semilogx(
+        LAMBDA_VALUES[positive],
+        validation_errors[positive],
+        "o-",
+        label=f"L2-regularized (λ=0 baseline: {validation_errors[0]:.1f})",
+    )
     plt.xlabel("Regularization constant λ (log scale)")
     plt.ylabel("Average 10-fold validation RMS error")
     plt.title("Part 1(d): Degree-8 polynomial regularization")
@@ -166,7 +173,7 @@ def plot_part_d(validation_errors):
 
 def part_d(x_train, y_train):
     """Part 1(d): degree-eight, 10-fold CV using only the second feature (ZN)."""
-    validation_errors = cross_validate_regularization(x_train[:, 1], y_train)
+    validation_errors = polynomial_regression_reg(x_train[:, 1], y_train)
     plot_part_d(validation_errors)
     return validation_errors, LAMBDA_VALUES[np.argmin(validation_errors)]
 
@@ -179,7 +186,7 @@ def main():
     train_errors, test_errors = part_a(x_train, y_train, x_test, y_test)
     weights = part_b(x_train, y_train)
     one_d_errors = {
-        degree: plot_one_dimensional_fit(x_train[:, 1], y_train, x_test[:, 1], y_test, degree)
+        degree: polynomial_regression_1d_vis(x_train[:, 1], y_train, x_test[:, 1], y_test, degree)
         for degree in (1, 3, 8)
     }
     validation_errors, best_lambda = part_d(x_train, y_train)
