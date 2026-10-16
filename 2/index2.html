@@ -21,10 +21,14 @@
     <h3>1(a) Polynomial Degree</h3>
     <p>
         I fitted polynomial basis regressions of degrees 1 through 7 using all
-        13 features, without cross-terms or regularization. Training error falls
-        steadily as the degree rises, while test error grows extremely quickly.
-        This is strong overfitting: the higher-degree terms fit the small training
-        set but generalize very poorly to the later observations.
+        13 features, without cross-terms or regularization. To make both curves
+        meaningfully interpretable across sixteen orders of magnitude, the plot uses
+        a logarithmic vertical scale. Training RMS error decreases monotonically
+        (from 2.0372 down to 0.8815) as model capacity increases, while test RMS error
+        explodes rapidly (from 36.44 at degree 1 to over 6.88 &times; 10<sup>15</sup> at degree 7).
+        This illustrates extreme overfitting: high-order monomial terms fit the 100 training points
+        tightly, but extrapolate disastrously on unseen test data due to severe numerical
+        ill-conditioning and high variance.
     </p>
     <img class="plot" src="./media/part1a_polynomial_errors.png" alt="Training and test RMS error versus polynomial degree">
     <table>
@@ -42,42 +46,73 @@
 
     <h3>1(b) Degree-One Weights</h3>
     <p>
-        These are weights for standardized input variables, with the intercept
-        listed first. The <code>housing.names</code> file labels average rooms as
-        RM and distance to employment centres as DIS. RM has a substantial positive
-        coefficient (4.195634), which is reasonable: more rooms tends to correspond
-        to higher house value. DIS has a near-zero positive coefficient (0.010715)
-        after the other features are included, so it contributes little in this
-        fitted training sample; its direction is not especially intuitive on its own.
+        The table below lists both the standardized weights (fitted on zero-mean, unit-variance predictors)
+        and the unstandardized weights transformed back into original physical units
+        (<i>w<sub>raw,j</sub> = w<sub>j</sub> / &sigma;<sub>j</sub></i>, with 
+        <i>w<sub>raw,0</sub> = w<sub>0</sub> &minus; &sum; w<sub>j</sub> &mu;<sub>j</sub> / &sigma;<sub>j</sub></i>).
+        Note on indexing: the assignment prompt refers to <strong>w<sub>5</sub></strong> as the weight on the
+        6<sup>th</sup> feature (RM) and asks for the weight on the 8<sup>th</sup> feature (DIS). This corresponds to
+        0-indexed feature predictors (<i>x<sub>5</sub></i> for RM and <i>x<sub>7</sub></i> for DIS). When the bias
+        weight is prepended as <i>w<sub>0</sub></i>, these correspond to vector indices <i>w<sub>6</sub></i> and
+        <i>w<sub>8</sub></i>, respectively. Both are highlighted below:
     </p>
     <table>
-        <thead><tr><th>Weight</th><th>Variable</th><th>Value</th></tr></thead>
+        <thead>
+            <tr>
+                <th>Vector Index</th>
+                <th>Feature Index</th>
+                <th>Variable Name</th>
+                <th>Standardized Weight</th>
+                <th>Unstandardized Weight (Physical Units)</th>
+            </tr>
+        </thead>
         <tbody>
-            <tr><td>w<sub>0</sub></td><td>Bias</td><td>22.309000</td></tr>
-            <tr><td>w<sub>1</sub></td><td>CRIM</td><td>-1.337974</td></tr>
-            <tr><td>w<sub>2</sub></td><td>ZN</td><td>0.122993</td></tr>
-            <tr><td>w<sub>3</sub></td><td>INDUS</td><td>-0.531065</td></tr>
-            <tr><td>w<sub>4</sub></td><td>CHAS</td><td>0.000000</td></tr>
-            <tr><td>w<sub>5</sub></td><td>NOX</td><td>1.002651</td></tr>
-            <tr><td>w<sub>6</sub></td><td>RM (average rooms)</td><td>4.195634</td></tr>
-            <tr><td>w<sub>7</sub></td><td>AGE</td><td>-2.166275</td></tr>
-            <tr><td>w<sub>8</sub></td><td>DIS (distance to employment centres)</td><td>0.010715</td></tr>
-            <tr><td>w<sub>9</sub></td><td>RAD</td><td>-0.193778</td></tr>
-            <tr><td>w<sub>10</sub></td><td>TAX</td><td>-0.348631</td></tr>
-            <tr><td>w<sub>11</sub></td><td>PTRATIO</td><td>0.261264</td></tr>
-            <tr><td>w<sub>12</sub></td><td>B</td><td>0.181073</td></tr>
-            <tr><td>w<sub>13</sub></td><td>LSTAT</td><td>0.148761</td></tr>
+            <tr><td>w<sub>0</sub></td><td>&mdash;</td><td>Bias (Intercept)</td><td>22.309000</td><td>-37.904200</td></tr>
+            <tr><td>w<sub>1</sub></td><td>x<sub>0</sub> (1<sup>st</sup>)</td><td>CRIM</td><td>-1.337974</td><td>-3.455946</td></tr>
+            <tr><td>w<sub>2</sub></td><td>x<sub>1</sub> (2<sup>nd</sup>)</td><td>ZN</td><td>0.122993</td><td>0.005382</td></tr>
+            <tr><td>w<sub>3</sub></td><td>x<sub>2</sub> (3<sup>rd</sup>)</td><td>INDUS</td><td>-0.531065</td><td>-0.168779</td></tr>
+            <tr><td>w<sub>4</sub></td><td>x<sub>3</sub> (4<sup>th</sup>)</td><td>CHAS</td><td>0.000000</td><td>0.000000</td></tr>
+            <tr><td>w<sub>5</sub></td><td>x<sub>4</sub> (5<sup>th</sup>)</td><td>NOX</td><td>1.002651</td><td>21.515396</td></tr>
+            <tr style="font-weight: bold; background: rgba(0, 150, 255, 0.08);">
+                <td>w<sub>6</sub></td><td>x<sub>5</sub> (6<sup>th</sup>, prompt: w<sub>5</sub>)</td><td>RM (average rooms)</td><td>4.195634</td><td>+8.590961 ($/room)</td>
+            </tr>
+            <tr><td>w<sub>7</sub></td><td>x<sub>6</sub> (7<sup>th</sup>)</td><td>AGE</td><td>-2.166275</td><td>-0.079237</td></tr>
+            <tr style="font-weight: bold; background: rgba(0, 150, 255, 0.08);">
+                <td>w<sub>8</sub></td><td>x<sub>7</sub> (8<sup>th</sup>, prompt: 8<sup>th</sup> feature)</td><td>DIS (distance to employment centres)</td><td>0.010715</td><td>+0.007627 ($/unit dist)</td>
+            </tr>
+            <tr><td>w<sub>9</sub></td><td>x<sub>8</sub> (9<sup>th</sup>)</td><td>RAD</td><td>-0.193778</td><td>-0.139906</td></tr>
+            <tr><td>w<sub>10</sub></td><td>x<sub>9</sub> (10<sup>th</sup>)</td><td>TAX</td><td>-0.348631</td><td>-0.007630</td></tr>
+            <tr><td>w<sub>11</sub></td><td>x<sub>10</sub> (11<sup>th</sup>)</td><td>PTRATIO</td><td>0.261264</td><td>0.154556</td></tr>
+            <tr><td>w<sub>12</sub></td><td>x<sub>11</sub> (12<sup>th</sup>)</td><td>B</td><td>0.181073</td><td>0.006645</td></tr>
+            <tr><td>w<sub>13</sub></td><td>x<sub>12</sub> (13<sup>th</sup>)</td><td>LSTAT</td><td>0.148761</td><td>0.026230</td></tr>
         </tbody>
     </table>
+    <p><strong>Evaluation of the two weights:</strong></p>
+    <ul>
+        <li>
+            <strong>Weight on 6<sup>th</sup> feature (RM, average number of rooms):</strong>
+            Standardized weight is <strong>+4.195634</strong>; unstandardized weight is <strong>+8.590961</strong> ($8,591 per additional room).
+            <em>Does this seem reasonable?</em> <strong>Yes, absolutely.</strong> Larger homes with more rooms command substantially higher market prices.
+            In physical terms, each extra room adding approximately $8,591 to median home value aligns with realistic housing market dynamics.
+        </li>
+        <li>
+            <strong>Weight on 8<sup>th</sup> feature (DIS, distance to five Boston employment centers):</strong>
+            Standardized weight is <strong>+0.010715</strong>; unstandardized weight is <strong>+0.007627</strong> ($7.63 per unit of weighted distance).
+            <em>Does this seem reasonable?</em> <strong>Yes, within the multivariable context.</strong> While a simple monocentric urban model might suggest proximity to downtown raises value (negative coefficient), in suburban Boston more distant towns often feature larger lot sizes and higher-income enclaves. Furthermore, once strongly correlated attributes such as industrial zoning (INDUS), air pollution (NOX), and socioeconomic status (LSTAT) are already held constant in the multiple regression, distance has virtually zero remaining independent effect on price.
+        </li>
+    </ul>
 
     <h3>1(c) One-Dimensional Polynomial Fits</h3>
     <p>
-        To visualize regression, I used the second data feature (ZN), as specified.
-        The degree-one and degree-three curves are similar and only capture a weak
-        overall relationship. The degree-eight curve bends substantially at the
-        edge of the observed values and has worse test error, illustrating the
-        instability of a high-order polynomial.
+        To visualize regression behavior directly, I fitted polynomials using solely the second predictor
+        (<strong>ZN</strong>: proportion of residential land zoned for lots over 25,000 sq. ft., corresponding to
+        <code>Xn(:, 2)</code> in MATLAB notation). Three degrees were selected:
     </p>
+    <ul>
+        <li><strong>Degree 1:</strong> Training RMS = 5.6951, Test RMS = 9.3523. Fits a modest positive upward slope, capturing the weak linear trend.</li>
+        <li><strong>Degree 3:</strong> Training RMS = 5.6649, Test RMS = 9.4341. Adds a slight curvature but performs almost identically to degree 1.</li>
+        <li><strong>Degree 8:</strong> Training RMS = 5.4772, Test RMS = 18.6450. Shows severe boundary instability (Runge's phenomenon), oscillating wildly to over 115 on the right edge and doubling the test error.</li>
+    </ul>
     <div class="plot-group">
         <figure><figcaption>Degree 1</figcaption><img class="plot" src="./media/part1c_degree_1.png" alt="One-dimensional degree 1 polynomial regression"></figure>
         <figure><figcaption>Degree 3</figcaption><img class="plot" src="./media/part1c_degree_3.png" alt="One-dimensional degree 3 polynomial regression"></figure>
@@ -86,26 +121,27 @@
 
     <h3>1(d) Regularized Degree-Eight Regression</h3>
     <p>
-        Using only ZN and the first 100 observations, I evaluated each requested
-        regularization constant with 10-fold cross-validation. The best average
-        validation RMS error occurs at <strong>λ = 10</strong>. Regularization
-        greatly improves on the unregularized degree-eight model.
+        Using only ZN and the first 100 observations, I evaluated L2-regularized degree-8 models across
+        &lambda; &isin; {0, 0.01, 0.1, 1, 10, 100, 1000} using 10-fold cross-validation.
+        The unregularized model (&lambda; = 0) exhibits extreme validation error (177,529.87) due to singular, unconstrained high-power coefficients.
+        Introducing L2 regularization constrains the weights and restores numerical stability.
+        The lowest 10-fold average validation RMS error is achieved at <strong>&lambda; = 10</strong> (validation RMS = <strong>9.9839</strong>).
     </p>
     <img class="plot" src="./media/part1d_cross_validation.png" alt="Average 10-fold validation RMS error versus regularization constant">
     <table>
-        <thead><tr><th>λ</th><th>Average validation RMS</th></tr></thead>
+        <thead><tr><th>&lambda;</th><th>Average 10-Fold Validation RMS</th></tr></thead>
         <tbody>
-            <tr><td>0</td><td>177529.8719</td></tr>
+            <tr><td>0 (unregularized baseline)</td><td>177529.8719</td></tr>
             <tr><td>0.01</td><td>903.8370</td></tr>
             <tr><td>0.1</td><td>109.6656</td></tr>
             <tr><td>1</td><td>70.0177</td></tr>
-            <tr><td>10</td><td>9.9839</td></tr>
+            <tr style="font-weight: bold; background: rgba(0, 150, 255, 0.08);"><td>10 (selected)</td><td>9.9839</td></tr>
             <tr><td>100</td><td>12.4507</td></tr>
             <tr><td>1000</td><td>17.7869</td></tr>
         </tbody>
     </table>
 
-    <p>The complete source is available here: <a href="./part1.py">part1.py</a>.</p>
+    <p>The complete source code is available here: <a href="./part1.py">part1.py</a>.</p>
     <p><a href="../index.html">Back to course assignments</a></p>
 </body>
 </html>
