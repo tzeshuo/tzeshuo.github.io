@@ -141,7 +141,70 @@
         </tbody>
     </table>
 
-    <p>The complete source code is available here: <a href="./part1.py">part1.py</a>.</p>
+    <p>The complete Part 1 source code is available here: <a href="./part1.py">part1.py</a>.</p>
+
+    <h2>Part 2 — Gaussian Basis Functions</h2>
+    <p>
+        Gaussian basis functions take the form 
+        &phi;<sub>j</sub>(x) = exp(&minus;||x &minus; &mu;<sub>j</sub>||<sup>2</sup> / (2s<sup>2</sup>)) with width parameter s = 2,
+        accompanied by an unpenalized bias unit &phi;<sub>0</sub>(x) = 1.
+        The basis centers &mu;<sub>j</sub> are selected by taking the first K points of a randomly permuted training set.
+    </p>
+
+    <h3>2(e) Number of Basis Functions</h3>
+    <p>
+        I fitted unregularized Gaussian basis regression across K &isin; {5, 15, 25, &hellip;, 95} basis functions using
+        all 13 standardized predictors. The first 100 observations serve as training data and the remaining 406 as test data.
+        As the number of basis functions K increases, the model capacity expands: training RMS error falls steadily from
+        4.8316 down to 0.4498. Test RMS error initially improves, reaching its optimal sweet spot around K = 35 (test RMS = 9.0981),
+        before rising to 13.7471 at K = 95. When K = 95, 96 total parameters are fitted on 100 training points,
+        leading to significant overfitting.
+    </p>
+    <img class="plot" src="./media/part2e_gaussian_errors.png" alt="Training and test RMS error versus number of Gaussian basis functions">
+    <table>
+        <thead><tr><th>Number of Basis Functions (K)</th><th>Training RMS</th><th>Test RMS</th></tr></thead>
+        <tbody>
+            <tr><td>5</td><td>4.8316</td><td>9.9727</td></tr>
+            <tr><td>15</td><td>3.4686</td><td>9.4092</td></tr>
+            <tr><td>25</td><td>2.6760</td><td>9.2477</td></tr>
+            <tr style="font-weight: bold; background: rgba(0, 150, 255, 0.08);"><td>35 (optimal test RMS)</td><td>2.1920</td><td>9.0981</td></tr>
+            <tr><td>45</td><td>1.8239</td><td>9.1907</td></tr>
+            <tr><td>55</td><td>1.5617</td><td>9.4595</td></tr>
+            <tr><td>65</td><td>1.2859</td><td>9.1505</td></tr>
+            <tr><td>75</td><td>1.1335</td><td>9.1142</td></tr>
+            <tr><td>85</td><td>0.7441</td><td>10.5726</td></tr>
+            <tr><td>95</td><td>0.4498</td><td>13.7471</td></tr>
+        </tbody>
+    </table>
+
+    <h3>2(f) Regularized Gaussian Regression</h3>
+    <p>
+        Using all 13 features from the first 100 points, I fitted a model with 90 Gaussian basis functions under L2
+        regularization across &lambda; &isin; {0, 0.01, 0.1, 1, 10, 100, 1000} using 10-fold cross-validation.
+        Without regularization (&lambda; = 0), the average validation RMS error is 9.2864 due to high variance from
+        fitting 91 parameters on 90 training points per fold. Adding L2 regularization controls the weights and improves
+        generalization: validation error drops significantly to <strong>3.3693 at &lambda; = 0.01</strong>.
+        As &lambda; increases further, the penalty becomes overly restrictive and validation error grows steadily.
+        I would therefore choose <strong>&lambda; = 0.01</strong> from cross-validation.
+    </p>
+    <img class="plot" src="./media/part2f_cross_validation.png" alt="Average 10-fold validation RMS error versus regularization constant for Gaussian regression">
+    <table>
+        <thead><tr><th>&lambda;</th><th>Average 10-Fold Validation RMS</th></tr></thead>
+        <tbody>
+            <tr><td>0 (unregularized baseline)</td><td>9.2864</td></tr>
+            <tr style="font-weight: bold; background: rgba(0, 150, 255, 0.08);"><td>0.01 (selected)</td><td>3.3693</td></tr>
+            <tr><td>0.1</td><td>3.5348</td></tr>
+            <tr><td>1</td><td>3.6238</td></tr>
+            <tr><td>10</td><td>4.0980</td></tr>
+            <tr><td>100</td><td>4.8971</td></tr>
+            <tr><td>1000</td><td>5.5366</td></tr>
+        </tbody>
+    </table>
+
+    <p>
+        The complete source code is available here:
+        <a href="./part1.py">part1.py</a> | <a href="./part2.py">part2.py</a>.
+    </p>
     <p><a href="../index.html">Back to course assignments</a></p>
 </body>
 </html>
