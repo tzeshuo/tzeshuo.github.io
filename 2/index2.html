@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SYDE 572 - Assignment 2</title>
+    <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+    <h1>SYDE 572</h1>
+    <p class="subtitle">Assignment 2 — Linear Regression</p>
+    <p><a href="../index.html">Back to course assignments</a></p>
+
+    <h2>Part 1 — Polynomial Basis Functions</h2>
+    <p>
+        The Boston Housing data are split in their supplied order: the first 100
+        observations train each model and the remaining 406 observations test it.
+        Predictor normalization uses statistics calculated from training data only.
+    </p>
+
+    <h3>1(a) Polynomial Degree</h3>
+    <p>
+        I fitted polynomial basis regressions of degrees 1 through 7 using all
+        13 features, without cross-terms or regularization. Training error falls
+        steadily as the degree rises, while test error grows extremely quickly.
+        This is strong overfitting: the higher-degree terms fit the small training
+        set but generalize very poorly to the later observations.
+    </p>
+    <img class="plot" src="./media/part1a_polynomial_errors.png" alt="Training and test RMS error versus polynomial degree">
+    <table>
+        <thead><tr><th>Degree</th><th>Training RMS</th><th>Test RMS</th></tr></thead>
+        <tbody>
+            <tr><td>1</td><td>2.0372</td><td>36.4449</td></tr>
+            <tr><td>2</td><td>1.5781</td><td>1097.1883</td></tr>
+            <tr><td>3</td><td>1.4491</td><td>48672.8178</td></tr>
+            <tr><td>4</td><td>1.2705</td><td>21859310.1962</td></tr>
+            <tr><td>5</td><td>1.0966</td><td>18358040619.9514</td></tr>
+            <tr><td>6</td><td>1.0725</td><td>5024088561429.9541</td></tr>
+            <tr><td>7</td><td>0.8815</td><td>6879332103365386.0000</td></tr>
+        </tbody>
+    </table>
+
+    <h3>1(b) Degree-One Weights</h3>
+    <p>
+        These are weights for standardized input variables, with the intercept
+        listed first. The <code>housing.names</code> file labels average rooms as
+        RM and distance to employment centres as DIS. RM has a substantial positive
+        coefficient (4.195634), which is reasonable: more rooms tends to correspond
+        to higher house value. DIS has a near-zero positive coefficient (0.010715)
+        after the other features are included, so it contributes little in this
+        fitted training sample; its direction is not especially intuitive on its own.
+    </p>
+    <table>
+        <thead><tr><th>Weight</th><th>Variable</th><th>Value</th></tr></thead>
+        <tbody>
+            <tr><td>w<sub>0</sub></td><td>Bias</td><td>22.309000</td></tr>
+            <tr><td>w<sub>1</sub></td><td>CRIM</td><td>-1.337974</td></tr>
+            <tr><td>w<sub>2</sub></td><td>ZN</td><td>0.122993</td></tr>
+            <tr><td>w<sub>3</sub></td><td>INDUS</td><td>-0.531065</td></tr>
+            <tr><td>w<sub>4</sub></td><td>CHAS</td><td>0.000000</td></tr>
+            <tr><td>w<sub>5</sub></td><td>NOX</td><td>1.002651</td></tr>
+            <tr><td>w<sub>6</sub></td><td>RM (average rooms)</td><td>4.195634</td></tr>
+            <tr><td>w<sub>7</sub></td><td>AGE</td><td>-2.166275</td></tr>
+            <tr><td>w<sub>8</sub></td><td>DIS (distance to employment centres)</td><td>0.010715</td></tr>
+            <tr><td>w<sub>9</sub></td><td>RAD</td><td>-0.193778</td></tr>
+            <tr><td>w<sub>10</sub></td><td>TAX</td><td>-0.348631</td></tr>
+            <tr><td>w<sub>11</sub></td><td>PTRATIO</td><td>0.261264</td></tr>
+            <tr><td>w<sub>12</sub></td><td>B</td><td>0.181073</td></tr>
+            <tr><td>w<sub>13</sub></td><td>LSTAT</td><td>0.148761</td></tr>
+        </tbody>
+    </table>
+
+    <h3>1(c) One-Dimensional Polynomial Fits</h3>
+    <p>
+        To visualize regression, I used the second data feature (ZN), as specified.
+        The degree-one and degree-three curves are similar and only capture a weak
+        overall relationship. The degree-eight curve bends substantially at the
+        edge of the observed values and has worse test error, illustrating the
+        instability of a high-order polynomial.
+    </p>
+    <div class="plot-group">
+        <figure><figcaption>Degree 1</figcaption><img class="plot" src="./media/part1c_degree_1.png" alt="One-dimensional degree 1 polynomial regression"></figure>
+        <figure><figcaption>Degree 3</figcaption><img class="plot" src="./media/part1c_degree_3.png" alt="One-dimensional degree 3 polynomial regression"></figure>
+        <figure><figcaption>Degree 8</figcaption><img class="plot" src="./media/part1c_degree_8.png" alt="One-dimensional degree 8 polynomial regression"></figure>
+    </div>
+
+    <h3>1(d) Regularized Degree-Eight Regression</h3>
+    <p>
+        Using only ZN and the first 100 observations, I evaluated each requested
+        regularization constant with 10-fold cross-validation. The best average
+        validation RMS error occurs at <strong>λ = 10</strong>. Regularization
+        greatly improves on the unregularized degree-eight model.
+    </p>
+    <img class="plot" src="./media/part1d_cross_validation.png" alt="Average 10-fold validation RMS error versus regularization constant">
+    <table>
+        <thead><tr><th>λ</th><th>Average validation RMS</th></tr></thead>
+        <tbody>
+            <tr><td>0</td><td>177529.8719</td></tr>
+            <tr><td>0.01</td><td>903.8370</td></tr>
+            <tr><td>0.1</td><td>109.6656</td></tr>
+            <tr><td>1</td><td>70.0177</td></tr>
+            <tr><td>10</td><td>9.9839</td></tr>
+            <tr><td>100</td><td>12.4507</td></tr>
+            <tr><td>1000</td><td>17.7869</td></tr>
+        </tbody>
+    </table>
+
+    <p>The complete source is available here: <a href="./part1.py">part1.py</a>.</p>
+    <p><a href="../index.html">Back to course assignments</a></p>
+</body>
+</html>
