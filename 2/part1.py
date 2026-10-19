@@ -1,9 +1,3 @@
-"""SYDE 572 Assignment 2 — Part 1: polynomial basis regression.
-
-Run with ``python 2/part1.py``. The script creates every Part 1(a–d)
-figure in ``2/media`` and prints the numerical results for the report.
-"""
-
 from pathlib import Path
 
 import matplotlib.pyplot as plt
@@ -83,13 +77,7 @@ def plot_part_a(train_errors, test_errors, degrees=DEGREES):
 
 
 def polynomial_regression(x_train, y_train, x_test, y_test, degree=None):
-    """Part 1(a) function as requested in assignment.
-
-    If degree is None, fits degree 1 to 7 with training standardization, plots errors,
-    and returns (train_errors, test_errors).
-    If an integer degree is provided, fits for that degree on the provided inputs and
-    returns (weights, train_error, test_error).
-    """
+    """Fit unregularized polynomial regression for degrees 1 to 7 or a single degree."""
     if degree is not None:
         return fit_single_polynomial_regression(x_train, y_train, x_test, y_test, degree)
 
@@ -108,7 +96,6 @@ def polynomial_regression(x_train, y_train, x_test, y_test, degree=None):
 
 
 def part_a(x_train, y_train, x_test, y_test):
-    """Alias for Part 1(a) polynomial regression workflow."""
     return polynomial_regression(x_train, y_train, x_test, y_test)
 
 
@@ -121,11 +108,7 @@ def unstandardize_weights(weights, mean, std):
 
 
 def part_b(x_train, y_train):
-    """Part 1(b): degree-one weights using training-set normalization.
-
-    Returns:
-        (std_weights, unstd_weights, mean, std)
-    """
+    """Part 1(b): degree-one weights using training-set normalization."""
     mean, std = fit_standardizer(x_train)
     phi = polynomial_design_matrix(standardize(x_train, mean, std), 1)
     std_weights = fit_linear_regression(phi, y_train)
@@ -152,7 +135,6 @@ def polynomial_regression_1d_vis(raw_train, y_train, raw_test, y_test, degree):
     plt.ylabel("MEDV ($1000s)")
     plt.title(f"Part 1(c): One-dimensional polynomial regression (degree {degree})")
     
-    # Ensure full polynomial behavior is visible, including high-order oscillations
     y_min = min(0.0, float(curve_y.min()) - 5.0)
     y_max = max(55.0, float(curve_y.max()) + 5.0)
     plt.ylim(y_min, y_max)

@@ -1,9 +1,3 @@
-"""SYDE 572 Assignment 2 — Part 2: Gaussian basis regression.
-
-Run with ``python 2/part2.py``. The script creates every Part 2(e–f)
-figure in ``2/media`` and prints the numerical results for the report.
-"""
-
 from pathlib import Path
 
 import matplotlib.pyplot as plt
@@ -13,9 +7,9 @@ import numpy as np
 DATA_PATH = Path(__file__).parent / "assn2 material" / "assn2 material" / "housing.data"
 OUTPUT_DIR = Path(__file__).parent / "media"
 TRAINING_SIZE = 100
-K_VALUES = list(range(5, 105, 10))  # [5, 15, 25, 35, 45, 55, 65, 75, 85, 95]
+K_VALUES = list(range(5, 105, 10))
 LAMBDA_VALUES = np.array([0.0, 0.01, 0.1, 1.0, 10.0, 100.0, 1000.0])
-DEFAULT_SCALE = 2.0  # Gaussian basis function width s = 2
+DEFAULT_SCALE = 2.0
 
 
 def load_housing_data(data_path=DATA_PATH):
@@ -56,7 +50,6 @@ def gaussian_design_matrix(x, centers, scale=DEFAULT_SCALE):
     """
     x = np.asarray(x)
     centers = np.asarray(centers)
-    # Pairwise squared Euclidean distances between points and centers
     dist_sq = np.sum((x[:, None, :] - centers[None, :, :]) ** 2, axis=-1)
     phi = np.exp(-dist_sq / (2.0 * scale ** 2))
     return np.column_stack([np.ones(x.shape[0]), phi])
@@ -79,20 +72,14 @@ def plot_part_e(k_values, train_errors, test_errors):
 
 
 def gaussian_regression(x_train, y_train, x_test, y_test, k_values=None, scale=DEFAULT_SCALE, seed=42, plot=True):
-    """Part 2(e): unregularized Gaussian basis regression across varying K.
-
-    Uses the first 100 points as training data and remainder as testing data.
-    Generates a random permutation of training points and takes the first K as centers.
-    """
+    """Part 2(e): unregularized Gaussian basis regression across varying K."""
     if k_values is None:
         k_values = K_VALUES
 
-    # Normalize predictor variables using training-set statistics
     mean, std = fit_standardizer(x_train)
     x_train_std = standardize(x_train, mean, std)
     x_test_std = standardize(x_test, mean, std)
 
-    # Random permutation of training points to pick centers
     rng = np.random.default_rng(seed)
     perm = rng.permutation(len(x_train_std))
 
@@ -142,19 +129,13 @@ def plot_part_f(validation_errors, lambda_values=LAMBDA_VALUES):
 
 
 def gaussian_regression_reg(x_train, y_train, num_basis=90, lambda_values=None, folds=10, scale=DEFAULT_SCALE, seed=42, plot=True):
-    """Part 2(f): L2-regularized Gaussian basis regression using 10-fold CV.
-
-    Uses all 13 features of the first 100 points with 90 basis functions.
-    In each fold, standardizer is learned from the fold's training partition.
-    """
+    """Part 2(f): L2-regularized Gaussian basis regression using 10-fold CV."""
     if lambda_values is None:
         lambda_values = LAMBDA_VALUES
 
     rng = np.random.default_rng(seed)
     fold_indices = np.array_split(np.arange(len(y_train)), folds)
 
-    # Precompute fold design matrices and partitions once so all lambda values
-    # are evaluated on the exact same basis functions
     fold_partitions = []
     for validation_indices in fold_indices:
         training_mask = np.ones(len(y_train), dtype=bool)
@@ -162,12 +143,10 @@ def gaussian_regression_reg(x_train, y_train, num_basis=90, lambda_values=None, 
         fold_x_train, fold_y_train = x_train[training_mask], y_train[training_mask]
         fold_x_val, fold_y_val = x_train[validation_indices], y_train[validation_indices]
 
-        # Fit scaling on this fold's training partition only
         mean, std = fit_standardizer(fold_x_train)
         fold_x_train_std = standardize(fold_x_train, mean, std)
         fold_x_val_std = standardize(fold_x_val, mean, std)
 
-        # Centers: choose 90 centers from the fold's 90 training points
         fold_perm = rng.permutation(len(fold_x_train_std))
         centers = fold_x_train_std[fold_perm[:num_basis]]
 
