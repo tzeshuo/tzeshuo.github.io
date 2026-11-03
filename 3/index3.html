@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SYDE 572 - Assignment 3</title>
+    <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+    <h1>SYDE 572</h1>
+    <p class="subtitle">Assignment 3 &mdash; Principal Component Analysis &amp; Non-Linear Manifolds</p>
+    <p><a href="../index.html">&larr; Back to course assignments</a></p>
+
+    <!-- ===================================================================== -->
+    <!-- PART 1: PCA BY HAND -->
+    <!-- ===================================================================== -->
+    <h2>Part 1 &mdash; PCA by Hand</h2>
+    <p>
+        Consider a dataset containing 5 examples with 2 features each:
+    </p>
+    <table>
+        <thead>
+            <tr>
+                <th>Sample</th>
+                <th><i>x</i><sub>1</sub></th>
+                <th><i>x</i><sub>2</sub></th>
+                <th>Centered <i>x&#771;</i><sub>1</sub></th>
+                <th>Centered <i>x&#771;</i><sub>2</sub></th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td><b>x</b><sup>(1)</sup></td><td>-2</td><td>-1</td><td>-2</td><td>-2</td></tr>
+            <tr><td><b>x</b><sup>(2)</sup></td><td>-1</td><td>0</td><td>-1</td><td>-1</td></tr>
+            <tr><td><b>x</b><sup>(3)</sup></td><td>0</td><td>1</td><td>0</td><td>0</td></tr>
+            <tr><td><b>x</b><sup>(4)</sup></td><td>1</td><td>2</td><td>1</td><td>1</td></tr>
+            <tr><td><b>x</b><sup>(5)</sup></td><td>2</td><td>3</td><td>2</td><td>2</td></tr>
+        </tbody>
+    </table>
+
+    <h3>Handwritten Analytical Solution</h3>
+    <p>
+        The handwritten step-by-step mathematical derivation for Part 1 is displayed below:
+    </p>
+
+    <h4>Handwritten Solution &mdash; Page 1</h4>
+    <img
+        class="plot"
+        src="./media/part1-handwritten-1.png"
+        alt="Handwritten solution page 1 for Part 1"
+    >
+
+    <h4>Handwritten Solution &mdash; Page 2</h4>
+    <img
+        class="plot"
+        src="./media/part1-handwritten-2.png"
+        alt="Handwritten solution page 2 for Part 1"
+    >
+
+    <h3>Analytical Derivations &amp; Work</h3>
+    <ol>
+        <li>
+            <strong>Mean Centering:</strong>
+            The sample mean vector is:
+            <br>
+            &mu;<sub>1</sub> = (-2 + -1 + 0 + 1 + 2) / 5 = <b>0</b><br>
+            &mu;<sub>2</sub> = (-1 + 0 + 1 + 2 + 3) / 5 = <b>1</b> &implies; 
+            <b>&mu;</b> = [0, 1]<sup>T</sup>.
+            <br>
+            Subtracting <b>&mu;</b> yields centered data <i>x&#771;</i><sup>(<i>i</i>)</sup> = <i>x</i><sup>(<i>i</i>)</sup> &minus; <b>&mu;</b>. 
+            Notice that for all points, <i>x&#771;</i><sub>2</sub> = <i>x&#771;</i><sub>1</sub>, meaning all 5 centered points lie exactly on the line of slope 1 through the origin.
+        </li>
+        <li style="margin-top: 14px;">
+            <strong>Scatter &amp; Covariance Matrices:</strong>
+            The scatter matrix <b>S</b> = <b>X&#771;</b><sup>T</sup><b>X&#771;</b> is:
+            <br>
+            <b>S</b> = &sum; <i>x&#771;</i><sup>(<i>i</i>)</sup> (<i>x&#771;</i><sup>(<i>i</i>)</sup>)<sup>T</sup> = 
+            &begin;bmatrix& 10 & 10 \\ 10 & 10 &end;bmatrix&.
+            <br>
+            The sample covariance matrix (unbiased, <i>N</i> &minus; 1 = 4) is 
+            <b>&Sigma;</b> = <b>S</b> / 4 = &begin;bmatrix& 2.5 & 2.5 \\ 2.5 & 2.5 &end;bmatrix&.
+        </li>
+        <li style="margin-top: 14px;">
+            <strong>Question 1 &mdash; What is the first principal component?</strong>
+            <br>
+            The characteristic equation is det(<b>S</b> &minus; &lambda;<b>I</b>) = (10 &minus; &lambda;)<sup>2</sup> &minus; 100 = &lambda;<sup>2</sup> &minus; 20&lambda; = 0, giving eigenvalues &lambda;<sub>1</sub> = 20 and &lambda;<sub>2</sub> = 0.
+            <br>
+            Solving (<b>S</b> &minus; 20<b>I</b>)<b>w</b><sub>1</sub> = <b>0</b> yields &minus;10<i>w</i><sub>11</sub> + 10<i>w</i><sub>12</sub> = 0 &implies; <i>w</i><sub>11</sub> = <i>w</i><sub>12</sub>.
+            <br>
+            Normalizing to unit length (||<b>w</b><sub>1</sub>|| = 1):
+            <br>
+            <b>w<sub>1</sub> = [ 1/&radic;2, 1/&radic;2 ]<sup>T</sup> &approx; [ 0.707107, 0.707107 ]<sup>T</sup></b>.
+        </li>
+        <li style="margin-top: 14px;">
+            <strong>Question 2 &mdash; What is the (L2-norm) reconstruction error of the point (3, 3)?</strong>
+            <br>
+            1. Center the point: <b>x&#771;</b> = [3, 3]<sup>T</sup> &minus; [0, 1]<sup>T</sup> = [3, 2]<sup>T</sup>.<br>
+            2. Compute scalar projection onto <b>w</b><sub>1</sub>: 
+            <i>z</i><sub>1</sub> = <b>w</b><sub>1</sub><sup>T</sup> <b>x&#771;</b> = (3 + 2) / &radic;2 = <b>5 / &radic;2 &approx; 3.535534</b>.<br>
+            3. Compute reconstructed centered point: <b>x&#770;&#771;</b> = <i>z</i><sub>1</sub> <b>w</b><sub>1</sub> = (5/&radic;2) [1/&radic;2, 1/&radic;2]<sup>T</sup> = [2.5, 2.5]<sup>T</sup>.<br>
+            4. Shift back by mean <b>&mu;</b>: <b>x&#770;</b> = [2.5, 2.5]<sup>T</sup> + [0, 1]<sup>T</sup> = <b>[2.5, 3.5]<sup>T</sup></b>.<br>
+            5. Reconstruction error vector: <b>e</b> = <b>x</b> &minus; <b>x&#770;</b> = [3 &minus; 2.5, 3 &minus; 3.5]<sup>T</sup> = <b>[0.5, &minus;0.5]<sup>T</sup></b>.<br>
+            6. L2-norm of reconstruction error: 
+            <b>||e||<sub>2</sub> = &radic;((0.5)<sup>2</sup> + (&minus;0.5)<sup>2</sup>) = &radic;(0.25 + 0.25) = &radic;(0.5) = 1 / &radic;2 &approx; 0.707107</b>.
+            <br>
+            <i>(Equivalently, this is the absolute projection along the orthogonal component <b>w</b><sub>2</sub> = [&minus;1/&radic;2, 1/&radic;2]<sup>T</sup>: |<b>w</b><sub>2</sub><sup>T</sup><b>x&#771;</b>| = |&minus;3/&radic;2 + 2/&radic;2| = 1/&radic;2 &approx; 0.707107).</i>
+        </li>
+        <li style="margin-top: 14px;">
+            <strong>Question 3 &mdash; What is the (L2-norm) reconstruction error of the point (3, 4)?</strong>
+            <br>
+            1. Center the point: <b>x&#771;</b> = [3, 4]<sup>T</sup> &minus; [0, 1]<sup>T</sup> = [3, 3]<sup>T</sup>.<br>
+            2. Notice that <i>x&#771;</i><sub>1</sub> = <i>x&#771;</i><sub>2</sub> = 3, meaning the centered vector points exactly along the unit eigenvector <b>w</b><sub>1</sub> = [1/&radic;2, 1/&radic;2]<sup>T</sup>.<br>
+            3. Projection scalar: <i>z</i><sub>1</sub> = (3 + 3) / &radic;2 = 6 / &radic;2 = 3&radic;2.<br>
+            4. Reconstructed point: <b>x&#770;</b> = [0, 1]<sup>T</sup> + 3&radic;2 [1/&radic;2, 1/&radic;2]<sup>T</sup> = [0, 1]<sup>T</sup> + [3, 3]<sup>T</sup> = <b>[3, 4]<sup>T</sup></b>.<br>
+            5. Reconstruction error vector: <b>e</b> = [3 &minus; 3, 4 &minus; 4]<sup>T</sup> = [0, 0]<sup>T</sup>.<br>
+            6. L2-norm of reconstruction error: <b>||e||<sub>2</sub> = 0</b>.
+        </li>
+    </ol>
+
+    <h4>Verification Plot for Part 1</h4>
+    <p>
+        The plot below verifies the analytical calculations: the 5 training points, the sample mean,
+        the first principal component axis, the test point (3, 3) with its orthogonal projection and error vector,
+        and the test point (3, 4) lying directly on the PC1 subspace.
+    </p>
+    <img
+        class="plot"
+        src="./media/part1_pca_hand_plot.png"
+        alt="Verification plot of analytical PCA by hand with projections"
+    >
+
+    <!-- ===================================================================== -->
+    <!-- PART 2: DATA VISUALIZATION -->
+    <!-- ===================================================================== -->
+    <h2>Part 2 &mdash; Data Visualization (Marginalization)</h2>
+    <p>
+        Marginalization involves projecting the 4-dimensional Iris dataset onto a lower-dimensional coordinate subspace
+        by selecting a subset of raw features (removing unselected feature dimensions). Below, the dataset is visualized
+        marginalized onto 1 feature, 2 features, and 3 features.
+    </p>
+
+    <h3>1D Marginalization &mdash; Petal Length</h3>
+    <p>
+        Projecting onto Feature 3 (Petal Length) displays a strong natural split: 
+        <i>Iris Setosa</i> (blue) forms an isolated cluster below 2.0 cm, entirely separated from 
+        <i>Iris Versicolor</i> (orange, 3.0&ndash;5.1 cm) and <i>Iris Virginica</i> (green, 4.5&ndash;6.9 cm).
+    </p>
+    <img
+        class="plot"
+        src="./media/part2_1d_petal_length.png"
+        alt="1D marginalization onto Petal Length"
+    >
+
+    <h3>2D Marginalization &mdash; Feature Combinations</h3>
+    <p>
+        Comparing two different 2D marginalizations illustrates why feature choice determines cluster clarity:
+    </p>
+    <div class="plot-group">
+        <figure>
+            <figcaption>Petal Length vs. Petal Width (Features 3 &amp; 4)</figcaption>
+            <img
+                class="plot"
+                src="./media/part2_2d_petal_length_vs_width.png"
+                alt="2D scatter plot of Petal Length vs Petal Width"
+            >
+        </figure>
+        <figure>
+            <figcaption>Sepal Length vs. Sepal Width (Features 1 &amp; 2)</figcaption>
+            <img
+                class="plot"
+                src="./media/part2_2d_sepal_length_vs_width.png"
+                alt="2D scatter plot of Sepal Length vs Sepal Width"
+            >
+        </figure>
+    </div>
+
+    <h3>3D Marginalization &mdash; Petal Length, Petal Width, Sepal Length</h3>
+    <p>
+        Combining Petal Length, Petal Width, and Sepal Length creates a 3-dimensional projection. 
+        <i>Setosa</i> is distinctly isolated in 3D space, while <i>Versicolor</i> and <i>Virginica</i> 
+        occupy adjoining, elongated clusters with minor boundary overlap.
+    </p>
+    <img
+        class="plot"
+        src="./media/part2_3d_features.png"
+        alt="3D scatter plot of Petal Length, Petal Width, and Sepal Length"
+    >
+
+    <h3>Analysis &amp; Commentary on Marginalization</h3>
+    <p>
+        <strong>Question:</strong> <em>Do any of these marginalizations highlight the classification of the dataset into nice clusters, if so, which ones? Comment.</em>
+    </p>
+    <ul>
+        <li>
+            <strong>Petal Dimensions Highlight Clean Clusters:</strong>
+            The marginalization onto <strong>Petal Length and Petal Width</strong> (Features 3 &amp; 4) produces the most prominent, well-separated clusters. 
+            <i>Iris Setosa</i> is completely linearly separable from the other two species with zero overlap. 
+            <i>Versicolor</i> and <i>Virginica</i> form two distinct, elongated clusters that can be separated with high accuracy (&gt;95%) using a simple decision boundary.
+        </li>
+        <li>
+            <strong>Sepal Dimensions Fail to Separate Species:</strong>
+            In stark contrast, the marginalization onto <strong>Sepal Length and Sepal Width</strong> (Features 1 &amp; 2) shows significant overlap between all three species. 
+            While <i>Setosa</i> tends to have wider sepals, <i>Versicolor</i> and <i>Virginica</i> overlap almost entirely in sepal space, making accurate classification impossible from sepal measurements alone.
+        </li>
+        <li>
+            <strong>Conclusion:</strong>
+            Petal morphology captures the evolutionary divergence among these Iris species much more strongly than sepal dimensions. Adding a third feature (Sepal Length) provides only marginal extra discriminative benefit over the 2D Petal Length vs. Petal Width space.
+        </li>
+    </ul>
+
+    <!-- ===================================================================== -->
+    <!-- PART 3: PCA ON IRIS -->
+    <!-- ===================================================================== -->
+    <h2>Part 3 &mdash; PCA on the Iris Dataset</h2>
+    <p>
+        Principal Component Analysis was performed on the Iris dataset using <code>scikit-learn</code>. 
+        Unlike coordinate marginalization (which restricts data to original feature axes), PCA performs an optimal 
+        orthogonal coordinate rotation to align the axes with the directions of maximum sample variance.
+    </p>
+
+    <h3>PCA Axis Vectors (Principal Components)</h3>
+    <p>
+        The table below provides the unit vectors <b>w</b><sub><i>k</i></sub> (the eigenvectors / rows of <code>pca.components_</code>) 
+        describing the four principal axes:
+    </p>
+    <table>
+        <thead>
+            <tr>
+                <th>Component</th>
+                <th>Sepal Length (cm)</th>
+                <th>Sepal Width (cm)</th>
+                <th>Petal Length (cm)</th>
+                <th>Petal Width (cm)</th>
+                <th>Variance (&lambda;)</th>
+                <th>Explained Ratio</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr style="font-weight: bold; background: rgba(23, 107, 104, 0.08);">
+                <td>PC1 (Major Axis)</td>
+                <td>+0.3614</td>
+                <td>-0.0845</td>
+                <td>+0.8567</td>
+                <td>+0.3583</td>
+                <td>4.2282</td>
+                <td>92.46%</td>
+            </tr>
+            <tr style="font-weight: bold; background: rgba(23, 107, 104, 0.08);">
+                <td>PC2</td>
+                <td>+0.6566</td>
+                <td>+0.7302</td>
+                <td>-0.1734</td>
+                <td>-0.0755</td>
+                <td>0.2427</td>
+                <td>5.31%</td>
+            </tr>
+            <tr>
+                <td>PC3</td>
+                <td>-0.5820</td>
+                <td>+0.5979</td>
+                <td>+0.0762</td>
+                <td>+0.5458</td>
+                <td>0.0782</td>
+                <td>1.71%</td>
+            </tr>
+            <tr>
+                <td>PC4</td>
+                <td>+0.3155</td>
+                <td>-0.3197</td>
+                <td>-0.4798</td>
+                <td>+0.7537</td>
+                <td>0.0238</td>
+                <td>0.52%</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h3>PCA Visualizations</h3>
+    <p>
+        The figures below display the dataset projected onto the major axis (1D), the top 2 axes (2D), and the top 3 axes (3D):
+    </p>
+
+    <h4>1D Projection &mdash; Major Axis (PC1)</h4>
+    <p>
+        Projecting onto PC1 alone accounts for 92.46% of all dataset variation. 
+        <i>Setosa</i> is completely separated on the negative side of PC1, and <i>Versicolor</i> and <i>Virginica</i> 
+        are ordered cleanly along the axis with minimal overlap.
+    </p>
+    <img
+        class="plot"
+        src="./media/part3_pca_1d.png"
+        alt="Data projected onto the major PCA axis"
+    >
+
+    <h4>2D Projection &mdash; Top 2 Axes (PC1 vs. PC2)</h4>
+    <p>
+        The top 2 principal components capture 97.77% of total variance. The clusters are clearly separated, 
+        with PC1 encoding overall flower size (dominated by petal length +0.8567) and PC2 encoding sepal width/length contrast.
+    </p>
+    <img
+        class="plot"
+        src="./media/part3_pca_2d.png"
+        alt="Data projected onto top 2 PCA axes"
+    >
+
+    <h4>3D Projection &mdash; Top 3 Axes (PC1, PC2, PC3)</h4>
+    <p>
+        The top 3 axes account for 99.48% of the total dataset variance, capturing virtually all geometric structure.
+    </p>
+    <img
+        class="plot"
+        src="./media/part3_pca_3d.png"
+        alt="Data projected onto top 3 PCA axes"
+    >
+
+    <!-- ===================================================================== -->
+    <!-- PART 4: DATA COMPRESSION -->
+    <!-- ===================================================================== -->
+    <h2>Part 4 &mdash; Data Compression &amp; Frobenius Norm Connection</h2>
+    <p>
+        In class, we discussed the <em>analysis view</em> of PCA: PCA finds the orthogonal projection matrix 
+        that maximizes the variance of projected points, which is mathematically equivalent to minimizing the 
+        L2 reconstruction error ||<b>X</b> &minus; <b>X&#770;</b>||<sub><i>F</i></sub><sup>2</sup>.
+    </p>
+
+    <h3>Mathematical Connection: Frobenius Norm and Variance</h3>
+    <p>
+        For a centered data matrix <b>X</b><sub><i>c</i></sub> of size <i>N</i> &times; <i>D</i> (where each column has zero mean):
+    </p>
+    <p style="background: var(--paper); padding: 12px 18px; border-left: 4px solid var(--accent); border-radius: 4px;">
+        ||<b>X</b><sub><i>c</i></sub>||<sub><i>F</i></sub><sup>2</sup> = &sum;<sub><i>i</i>=1</sub><sup><i>N</i></sup> &sum;<sub><i>j</i>=1</sub><sup><i>D</i></sup> (<i>x&#771;</i><sub><i>ij</i></sub>)<sup>2</sup> 
+        = Tr(<b>X</b><sub><i>c</i></sub><sup>T</sup><b>X</b><sub><i>c</i></sub>) 
+        = &sum;<sub><i>j</i>=1</sub><sup><i>D</i></sup> &lambda;<sub><i>j</i></sub> 
+        = (<i>N</i> &minus; 1) &sum;<sub><i>j</i>=1</sub><sup><i>D</i></sup> Var(<b>x</b><sub><i>j</i></sub>)
+    </p>
+    <p>
+        For the Iris dataset (<i>N</i> = 150, <i>D</i> = 4):
+    </p>
+    <ul>
+        <li>Centered matrix squared Frobenius norm: <b>||X<sub>c</sub>||<sub>F</sub><sup>2</sup> = 681.3706</b></li>
+        <li>Trace of scatter matrix: <b>Tr(X<sub>c</sub><sup>T</sup>X<sub>c</sub>) = 681.3706</b></li>
+        <li>Sum of sample covariance eigenvalues: <b>&sum; &lambda;<sub>j</sub> = 681.3706 / 149 = 4.572957</b></li>
+    </ul>
+
+    <h3>Answers to Prompt Questions</h3>
+    <ol>
+        <li>
+            <strong>How much of the variance is explained by our two-dimensional representation from the previous question?</strong>
+            <br>
+            The two-dimensional representation retains the top two principal components (PC1 and PC2):
+            <ul>
+                <li>Variance of PC1: &lambda;<sub>1</sub> = 4.228242 &implies; <b>92.4619%</b></li>
+                <li>Variance of PC2: &lambda;<sub>2</sub> = 0.242671 &implies; <b>5.3066%</b></li>
+            </ul>
+            Together, the two-dimensional representation captures:
+            <br>
+            <b style="font-size: 1.1em; color: var(--accent);">92.4619% + 5.3066% = 97.7685% of the total variance</b>.
+            <br>
+            This means 2 numbers per flower retain over 97.7% of the total structural information present in the original 4-dimensional measurements.
+        </li>
+        <li style="margin-top: 14px;">
+            <strong>How many PCs are required to explain 50% of the variance in the data?</strong>
+            <br>
+            <b style="font-size: 1.1em; color: var(--accent);">Only 1 principal component is required.</b>
+            <br>
+            As shown in the table and scree plot, the first principal component alone explains <b>92.46%</b> of the total variance, which by itself overwhelmingly exceeds the 50% threshold.
+        </li>
+    </ol>
+
+    <h4>Scree Plot &amp; Cumulative Explained Variance</h4>
+    <img
+        class="plot"
+        src="./media/part4_scree_variance.png"
+        alt="Scree plot and cumulative explained variance ratio"
+    >
+
+    <!-- ===================================================================== -->
+    <!-- PART 5: NON-LINEAR COMPONENTS -->
+    <!-- ===================================================================== -->
+    <h2>Part 5 &mdash; Non-Linear Components (ISOMAP vs. PCA)</h2>
+    <p>
+        Standard PCA assumes the data vary along global, linear orthogonal subspaces. When data live on a curved, 
+        non-linear manifold (where Euclidean straight-line distance through empty space is misleading), 
+        manifold learning algorithms such as <strong>ISOMAP</strong> (Isometric Feature Mapping) can be applied.
+    </p>
+
+    <h3>ISOMAP Algorithm &amp; Implementation (<i>k</i> = 3)</h3>
+    <p>
+        ISOMAP replaces pairwise Euclidean distances with approximate <em>geodesic distances</em> (shortest path lengths 
+        along a graph where edges connect only the <i>k</i>-nearest neighbours), and then embeds the points into 2D space 
+        using classical MultiDimensional Scaling (MDS).
+    </p>
+    <p>
+        Using <code>sklearn.manifold.Isomap(n_neighbors=3, n_components=2)</code>:
+    </p>
+    <pre><code>from sklearn.manifold import Isomap
+
+# Fit 2D ISOMAP embedding using 3-nearest neighbours
+isomap = Isomap(n_neighbors=3, n_components=2)
+X_isomap = isomap.fit_transform(X)</code></pre>
+
+    <div class="plot-group">
+        <figure>
+            <figcaption>ISOMAP Embedding (k = 3)</figcaption>
+            <img
+                class="plot"
+                src="./media/part5_isomap_k3.png"
+                alt="2D ISOMAP embedding with k=3"
+            >
+        </figure>
+        <figure>
+            <figcaption>Linear PCA vs. Non-Linear ISOMAP (k = 3)</figcaption>
+            <img
+                class="plot"
+                src="./media/part5_pca_vs_isomap.png"
+                alt="Comparison of PCA and ISOMAP embeddings"
+            >
+        </figure>
+    </div>
+
+    <h3>Comparison: Non-Linear ISOMAP vs. Linear PCA</h3>
+    <p>
+        <strong>Question:</strong> <em>Compare the dimensionality reduction using the non linear function and PCA, which is preferable and why? Evaluate against data compression criteria or the ability to classify the data.</em>
+    </p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Evaluation Criteria</th>
+                <th>Linear PCA</th>
+                <th>Non-Linear ISOMAP (<i>k</i> = 3)</th>
+                <th>Winner / Preference</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><b>Data Compression</b></td>
+                <td>
+                    <b>Analytical, linear projection &amp; decompression:</b>
+                    Provides explicit orthogonal matrix <b>W</b>. Encoding is <b>z</b> = <b>W</b><sup>T</sup>(<b>x</b> &minus; <b>&mu;</b>), and decoding is <b>x&#770;</b> = <b>Wz</b> + <b>&mu;</b>. 
+                    Reconstruction error is mathematically minimized (||<b>X</b> &minus; <b>X&#770;</b>||<sub><i>F</i></sub><sup>2</sup>), and new data points can be compressed and decompressed instantly.
+                </td>
+                <td>
+                    <b>Non-parametric embedding:</b>
+                    ISOMAP preserves pairwise graph geodesic distances, but does not provide an explicit projection matrix or exact inverse mapping. 
+                    Decompressing/reconstructing raw feature coordinates requires solving an ill-posed non-linear "pre-image problem".
+                </td>
+                <td><b style="color: var(--accent);">PCA (Far Superior)</b></td>
+            </tr>
+            <tr>
+                <td><b>Classification Discriminability</b></td>
+                <td>
+                    <b>Preserves global cluster geometry:</b>
+                    Separates <i>Setosa</i> completely and forms two clean, compact clusters for <i>Versicolor</i> and <i>Virginica</i>. 
+                    Linear classifiers (e.g. LDA, Linear SVM) achieve &gt;97% accuracy on the 2D PCA representation.
+                </td>
+                <td>
+                    <b>Graph sensitivity at <i>k</i> = 3:</b>
+                    Because <i>Setosa</i> is far from the other species, a 3-nearest neighbour graph is actually <i>disconnected</i> (splits into 2 disjoint components), forcing graph completion. 
+                    The resulting embedding pulls the clusters into irregular filamentary structures without improving class separation.
+                </td>
+                <td><b style="color: var(--accent);">PCA (More Robust)</b></td>
+            </tr>
+            <tr>
+                <td><b>Computational Complexity &amp; Out-of-Sample Mapping</b></td>
+                <td>
+                    <b><i>O</i>(<i>ND</i><sup>2</sup> + <i>D</i><sup>3</sup>):</b>
+                    Extremely fast covariance eigendecomposition. Compressing new points takes a single vector-matrix multiplication <i>O</i>(<i>D</i>).
+                </td>
+                <td>
+                    <b><i>O</i>(<i>N</i><sup>3</sup>):</b>
+                    Requires finding <i>k</i>-NN, running all-pairs shortest paths (Dijkstra/Floyd-Warshall), and eigendecomposition of an <i>N</i> &times; <i>N</i> kernel matrix. 
+                    Out-of-sample mapping requires graph interpolation.
+                </td>
+                <td><b style="color: var(--accent);">PCA (Much Faster)</b></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <p>
+        <strong>Conclusion &amp; Recommendation:</strong><br>
+        For the Iris dataset, <strong>PCA is definitively preferable</strong> over ISOMAP:
+    </p>
+    <ul>
+        <li>
+            <strong>Under Data Compression Criteria:</strong> PCA is strictly superior because it provides an analytical, optimal linear compression scheme with exact guarantees on preserved variance (97.77%) and trivial decompression (decoding). ISOMAP cannot be directly used for practical data compression because it lacks an inverse transform.
+        </li>
+        <li>
+            <strong>Under Classification Criteria:</strong> The Iris dataset does not live on a complex curved manifold (such as a Swiss roll or Möbius strip); its classes naturally form convex ellipsoidal clusters in Euclidean space. Consequently, non-linear geodesic unrolling offers no geometric advantage, while the small neighbourhood size (<i>k</i> = 3) introduces sensitivity to graph bottlenecks and disconnected components. PCA preserves global Euclidean cluster separations cleanly and reliably.
+        </li>
+    </ul>
+
+</body>
+</html>
+
