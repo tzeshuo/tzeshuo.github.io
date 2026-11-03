@@ -40,22 +40,31 @@
 
     <h3>Handwritten Analytical Solution</h3>
     <p>
-        The handwritten step-by-step mathematical derivation for Part 1 is displayed below:
+        The handwritten step-by-step mathematical derivation for Part 1 is embedded below. 
+        You can also <a href="./media/part1-handwritten.pdf" target="_blank" rel="noopener">open or download the PDF in a new tab</a>.
     </p>
 
-    <h4>Handwritten Solution &mdash; Page 1</h4>
-    <img
-        class="plot"
-        src="./media/part1-handwritten-1.png"
-        alt="Handwritten solution page 1 for Part 1"
-    >
-
-    <h4>Handwritten Solution &mdash; Page 2</h4>
-    <img
-        class="plot"
-        src="./media/part1-handwritten-2.png"
-        alt="Handwritten solution page 2 for Part 1"
-    >
+    <div style="margin: 18px 0 32px; width: 100%; max-width: 850px;">
+        <object
+            data="./media/part1-handwritten.pdf"
+            type="application/pdf"
+            width="100%"
+            height="850px"
+            style="display: block; width: 100%; border: 1px solid var(--line); border-radius: 6px; box-shadow: 0 5px 16px rgba(38, 50, 56, 0.08); background: var(--paper);"
+        >
+            <iframe
+                src="./media/part1-handwritten.pdf"
+                width="100%"
+                height="850px"
+                style="border: none; border-radius: 6px;"
+            >
+                <p>
+                    Your browser does not support embedded PDF files. 
+                    Please <a href="./media/part1-handwritten.pdf" target="_blank" rel="noopener">click here to download or view the PDF directly</a>.
+                </p>
+            </iframe>
+        </object>
+    </div>
 
     <h3>Analytical Derivations &amp; Work</h3>
     <ol>
@@ -176,11 +185,14 @@
             pass
 
     if lines:
-        rows = [l.split(",") for l in lines]
-        X = np.array([[float(v) for v in r[:4]] for r in rows], dtype=float)
-        y = np.array([class_map[r[4]] for r in rows], dtype=int)
-        assert len(X) == 150 and X.shape[1] == 4, f"Unexpected shape {X.shape}"
-        return IrisDataset(X, y, feature_names, target_names)
+        try:
+            rows = [l.split(",") for l in lines]
+            X = np.array([[float(v) for v in r[:4]] for r in rows], dtype=float)
+            y = np.array([class_map[r[4]] for r in rows], dtype=int)
+            if len(X) == 150 and X.shape[1] == 4:
+                return IrisDataset(X, y, feature_names, target_names)
+        except Exception:
+            pass
 
     # 3. Fallback to scikit-learn dataset
     from sklearn.datasets import load_iris
@@ -242,24 +254,33 @@
     <p>
         <strong>Question:</strong> <em>Do any of these marginalizations highlight the classification of the dataset into nice clusters, if so, which ones? Comment.</em>
     </p>
-    <ul>
+    <p>
+        Evaluating and ranking the selected marginalizations based on visual cluster separation and classification suitability:
+    </p>
+    <ol>
         <li>
-            <strong>Petal Dimensions Highlight Clean Clusters:</strong>
-            The marginalization onto <strong>Petal Length and Petal Width</strong> (Features 3 &amp; 4) produces the most prominent, well-separated clusters. 
+            <strong>1. Petal Length vs. Petal Width (Best Overall Separation):</strong> 
+            This 2D marginalization produces the cleanest and most distinct clusters. 
             <i>Iris Setosa</i> is completely linearly separable from the other two species with zero overlap. 
             <i>Versicolor</i> and <i>Virginica</i> form two partially overlapping clusters, although their distributions are sufficiently distinct to suggest that relatively accurate classification is possible using a suitable decision boundary.
         </li>
-        <li>
-            <strong>Sepal Dimensions Fail to Separate Species:</strong>
-            In stark contrast, the marginalization onto <strong>Sepal Length and Sepal Width</strong> (Features 1 &amp; 2) shows significant overlap between all three species. 
-            While <i>Setosa</i> tends to have wider sepals, there is considerable overlap among the three species, particularly between <i>Versicolor</i> and <i>Virginica</i>. 
-            Consequently, sepal measurements alone provide weaker visual separation than petal measurements and make classification more challenging.
+        <li style="margin-top: 10px;">
+            <strong>2. Petal Length alone (1D Projection):</strong>
+            Projecting onto Feature 3 alone is particularly effective for isolating <i>Iris Setosa</i> (below 2.0 cm), cleanly separating it from the other two classes with zero overlap, though <i>Versicolor</i> and <i>Virginica</i> exhibit moderate overlap between 4.5 and 5.1 cm.
         </li>
-        <li>
-            <strong>Conclusion:</strong>
-            Petal measurements provide stronger visual discrimination between the three Iris species than sepal measurements in the selected feature combinations. This suggests that petal length and width are more informative features for distinguishing the species in this dataset. Adding a third feature (Sepal Length) provides only marginal extra visual discriminative benefit over the 2D Petal Length vs. Petal Width space.
+        <li style="margin-top: 10px;">
+            <strong>3. Petal Length, Petal Width, and Sepal Length (3D Marginalization):</strong>
+            Adding Sepal Length to petal dimensions provides an informative 3D geometric perspective, but offers only marginal additional visual discriminative benefit over the 2D Petal Length vs. Petal Width subspace.
         </li>
-    </ul>
+        <li style="margin-top: 10px;">
+            <strong>4. Sepal Length vs. Sepal Width (Weakest Separation):</strong>
+            In stark contrast, marginalization onto Features 1 and 2 shows severe cluster overlap across all three species (particularly between <i>Versicolor</i> and <i>Virginica</i>). Sepal dimensions alone provide poor discriminative power for separating the species.
+        </li>
+    </ol>
+    <p>
+        <strong>Conclusion:</strong>
+        Petal measurements provide stronger visual discrimination between the three Iris species than sepal measurements. This indicates that petal length and width are the most informative morphological features for distinguishing species in this dataset.
+    </p>
 
     <!-- ===================================================================== -->
     <!-- PART 3: PCA ON IRIS -->
@@ -269,6 +290,12 @@
         Principal Component Analysis was performed on the Iris dataset using <code>scikit-learn</code>. 
         Unlike coordinate marginalization (which restricts data to original feature axes), PCA performs an optimal 
         orthogonal coordinate rotation to align the axes with the directions of maximum sample variance.
+    </p>
+    <p>
+        PCA was performed on the original measurements without standardizing the features. Because all four morphological 
+        attributes are measured in the same physical units (centimeters), retaining the original scale allows features 
+        with greater natural variation (such as petal length) to contribute more strongly to the principal components, 
+        faithfully preserving the true physical geometry of the specimens.
     </p>
 
     <h3>PCA Axis Vectors (Principal Components)</h3>
@@ -411,7 +438,7 @@
     <p>
         When projected onto an orthonormal basis of <i>K</i> principal components <b>W</b><sub><i>K</i></sub> = [<b>w</b><sub>1</sub>, ..., <b>w</b><sub><i>K</i></sub>], 
         the compressed low-dimensional representation is <b>Z</b><sub><i>K</i></sub> = <b>X</b><sub><i>c</i></sub><b>W</b><sub><i>K</i></sub>. 
-        Because the components are orthogonal, the variance captured by the representation is directly the squared Frobenius norm of <b>Z</b><sub><i>K</i></sub>:
+        Because the principal components are orthogonal, the squared Frobenius norm of <b>Z</b><sub><i>K</i></sub> equals the total scatter retained in the projected representation. Dividing by <i>N</i> &minus; 1 gives the total sample variance captured by the selected components:
     </p>
     <p style="background: var(--paper); padding: 12px 18px; border-left: 4px solid var(--accent); border-radius: 4px;">
         ||<b>Z</b><sub><i>K</i></sub>||<sub><i>F</i></sub><sup>2</sup> = Tr(<b>Z</b><sub><i>K</i></sub><sup>T</sup><b>Z</b><sub><i>K</i></sub>) = &sum;<sub><i>k</i>=1</sub><sup><i>K</i></sup> &lambda;<sub><i>k</i></sub><sup>(<i>S</i>)</sup> = (<i>N</i> &minus; 1) &sum;<sub><i>k</i>=1</sub><sup><i>K</i></sup> &lambda;<sub><i>k</i></sub><sup>(&Sigma;)</sup>.
@@ -492,6 +519,7 @@
         the 50 <i>Setosa</i> samples form one component, and the remaining 100 <i>Versicolor</i> and <i>Virginica</i> samples form the second. 
         Scikit-learn detects this disconnected structure and attempts to connect the components when computing the ISOMAP embedding. 
         This graph completion can introduce estimated connections between originally disconnected components, potentially affecting the resulting embedding and its interpretation.
+        Consequently, the relative positions of the two disconnected components in the final embedding should not be interpreted as reliable estimates of their true geodesic distances.
     </p>
     <p>
         The following code shows the core implementation for fitting ISOMAP and generating the visualization, using the previously loaded Iris dataset:
@@ -524,7 +552,7 @@ plt.title("Part 5: ISOMAP Embedding (3-Nearest Neighbours, 2 Components)")
 plt.grid(True, linestyle=":", alpha=0.4)
 plt.legend(loc="upper right")
 plt.tight_layout()
-plt.savefig("media/part5_isomap_k3.png", dpi=200)</code></pre>
+plt.savefig(OUTPUT_DIR / "part5_isomap_k3.png", dpi=200)</code></pre>
 
     <div class="plot-group">
         <figure>
@@ -591,6 +619,18 @@ plt.savefig("media/part5_isomap_k3.png", dpi=200)</code></pre>
                 <td><b style="color: var(--accent);">PCA (More Stable)</b></td>
             </tr>
             <tr>
+                <td><b>Classification Performance (5-Fold Stratified CV, 5-NN)</b></td>
+                <td>
+                    <b>96.67% (&plusmn; 2.11%) accuracy:</b>
+                    Evaluated by fitting PCA strictly inside each training fold to prevent data leakage. Delivers high accuracy with tight fold-to-fold consistency.
+                </td>
+                <td>
+                    <b>95.33% (&plusmn; 4.00%) accuracy:</b>
+                    Slightly lower accuracy and twice the variance across folds. Subsampling during cross-validation frequently fractures the <i>k</i>=3 nearest-neighbour graph into 2 or 3 disconnected components.
+                </td>
+                <td><b style="color: var(--accent);">PCA (Higher &amp; More Stable)</b></td>
+            </tr>
+            <tr>
                 <td><b>Computational Requirements</b></td>
                 <td>
                     Generally efficient, particularly when the feature dimension is small.
@@ -622,7 +662,7 @@ plt.savefig("media/part5_isomap_k3.png", dpi=200)</code></pre>
             <strong>Under the Data Compression Criterion:</strong> PCA provides a clear advantage. Its first two principal components retain approximately 97.76% of the original dataset's variance, while also providing an explicit linear transformation for projecting and reconstructing data.
         </li>
         <li>
-            <strong>Under the Visualization and Classification Criterion:</strong> PCA provides a stable representation of the global data structure, with <i>Setosa</i> clearly separated from the other species. ISOMAP attempts to preserve local manifold relationships, but its performance with three nearest neighbours is affected by the disconnected neighbourhood graph and subsequent graph completion.
+            <strong>Under the Visualization and Classification Criterion:</strong> PCA provides a stable representation of the global data structure, with <i>Setosa</i> clearly separated from the other species. When evaluated quantitatively via 5-fold cross-validation with a 5-nearest-neighbour classifier (fitted strictly inside training folds to prevent data leakage), the 2D PCA representation achieves higher classification accuracy (<strong>96.67% &plusmn; 2.11%</strong>) compared to 2D ISOMAP (<strong>95.33% &plusmn; 4.00%</strong>). Furthermore, ISOMAP with three neighbours is sensitive to graph disconnection during subsampling, whereas PCA provides reliable, deterministic linear projections.
         </li>
     </ul>
     <p>

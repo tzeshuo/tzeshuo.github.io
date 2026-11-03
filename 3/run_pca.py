@@ -54,11 +54,14 @@ def load_iris_data():
             pass
 
     if lines:
-        rows = [l.split(",") for l in lines]
-        X = np.array([[float(v) for v in r[:4]] for r in rows], dtype=float)
-        y = np.array([class_map[r[4]] for r in rows], dtype=int)
-        assert len(X) == 150 and X.shape[1] == 4, f"Unexpected shape {X.shape}"
-        return IrisDataset(X, y, feature_names, target_names)
+        try:
+            rows = [l.split(",") for l in lines]
+            X = np.array([[float(v) for v in r[:4]] for r in rows], dtype=float)
+            y = np.array([class_map[r[4]] for r in rows], dtype=int)
+            if len(X) == 150 and X.shape[1] == 4:
+                return IrisDataset(X, y, feature_names, target_names)
+        except Exception:
+            pass
 
     # 3. Fallback to scikit-learn dataset
     from sklearn.datasets import load_iris
@@ -544,6 +547,29 @@ def run_part5(iris, pca, X_pca):
     plt.savefig(fig_comp_path)
     plt.close()
     print(f"Saved Part 5 Comparison plot to: {fig_comp_path}")
+
+    # Objective Classification Evaluation (5-Fold Stratified Cross-Validation)
+    from sklearn.model_selection import StratifiedKFold, cross_val_score
+    from sklearn.neighbors import KNeighborsClassifier
+    from sklearn.pipeline import Pipeline
+
+    cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+    pca_pipe = Pipeline([
+        ("pca", PCA(n_components=2)),
+        ("knn", KNeighborsClassifier(n_neighbors=5))
+    ])
+    isomap_pipe = Pipeline([
+        ("isomap", Isomap(n_neighbors=3, n_components=2)),
+        ("knn", KNeighborsClassifier(n_neighbors=5))
+    ])
+
+    pca_cv_scores = cross_val_score(pca_pipe, X, y, cv=cv)
+    isomap_cv_scores = cross_val_score(isomap_pipe, X, y, cv=cv)
+
+    print("\nClassification Evaluation (5-Fold Stratified CV with 5-NN):")
+    print(f"  PCA 2D Embedding Accuracy:    {pca_cv_scores.mean() * 100:.2f}% (+/- {pca_cv_scores.std() * 100:.2f}%)")
+    print(f"  ISOMAP 2D Embedding Accuracy: {isomap_cv_scores.mean() * 100:.2f}% (+/- {isomap_cv_scores.std() * 100:.2f}%)")
+    return pca_cv_scores, isomap_cv_scores
 
 
 def main():
