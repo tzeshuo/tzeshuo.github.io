@@ -1,14 +1,68 @@
-import os
 from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
-from sklearn.datasets import load_iris
 from sklearn.decomposition import PCA
 from sklearn.manifold import Isomap
 
+# Set seed for reproducible jitter and random operations
+np.random.seed(42)
+
 OUTPUT_DIR = Path(__file__).parent / "media"
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+UCI_URL = "https://archive.ics.uci.edu/ml/machine-learning-databases/iris/iris.data"
+DATA_PATH = Path(__file__).parent / "assn3 material" / "iris.data"
+
+
+class IrisDataset:
+    def __init__(self, data, target, feature_names, target_names):
+        self.data = np.asarray(data, dtype=float)
+        self.target = np.asarray(target, dtype=int)
+        self.feature_names = feature_names
+        self.target_names = target_names
+
+
+def load_iris_data():
+    """Load the Iris dataset from local UCI cache, UCI repository URL, or sklearn fallback."""
+    feature_names = [
+        "sepal length (cm)",
+        "sepal width (cm)",
+        "petal length (cm)",
+        "petal width (cm)"
+    ]
+    target_names = ["setosa", "versicolor", "virginica"]
+    class_map = {
+        "Iris-setosa": 0,
+        "Iris-versicolor": 1,
+        "Iris-virginica": 2
+    }
+
+    lines = []
+    # 1. Check for locally cached UCI iris.data
+    if DATA_PATH.exists():
+        with open(DATA_PATH, "r", encoding="utf-8") as f:
+            lines = [l.strip() for l in f if l.strip()]
+    else:
+        # 2. Attempt download from UCI archive
+        import urllib.request
+        try:
+            req = urllib.request.Request(UCI_URL, headers={"User-Agent": "Mozilla/5.0"})
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                content = resp.read().decode("utf-8")
+                lines = [l.strip() for l in content.splitlines() if l.strip()]
+        except Exception:
+            pass
+
+    if lines:
+        rows = [l.split(",") for l in lines]
+        X = np.array([[float(v) for v in r[:4]] for r in rows], dtype=float)
+        y = np.array([class_map[r[4]] for r in rows], dtype=int)
+        assert len(X) == 150 and X.shape[1] == 4, f"Unexpected shape {X.shape}"
+        return IrisDataset(X, y, feature_names, target_names)
+
+    # 3. Fallback to scikit-learn dataset
+    from sklearn.datasets import load_iris
+    return load_iris()
 
 # Set consistent matplotlib styling
 plt.rcParams.update({
@@ -53,7 +107,6 @@ def run_part1():
     S = X_centered.T @ X_centered
     # Sample covariance matrix C (N=5)
     C_sample = S / (len(X) - 1)  # using N-1=4
-    C_pop = S / len(X)          # using N=5
     print(f"Scatter matrix (X_c^T X_c):\n{S}")
     print(f"Sample covariance (N-1=4):\n{C_sample}")
 
@@ -117,7 +170,7 @@ def run_part1():
     # Plot test point (3,3) and projection
     ax.scatter(p2[0], p2[1], color="#7570b3", s=90, marker="o", zorder=6, label="Test point (3,3)")
     ax.scatter(p2_recon[0], p2_recon[1], color="#7570b3", s=70, marker="s", facecolors="none", linewidth=2, zorder=6, label="Projection of (3,3)")
-    ax.plot([p2[0], p2_recon[0]], [p2[1], p2_recon[1]], color="#7570b3", linestyle=":", linewidth=2, label="Error $\|e\|_2 = 1/\\sqrt{2} \\approx 0.707$")
+    ax.plot([p2[0], p2_recon[0]], [p2[1], p2_recon[1]], color="#7570b3", linestyle=":", linewidth=2, label=r"Error $\|e\|_2 = 1/\sqrt{2} \approx 0.707$")
 
     # Plot test point (3,4)
     ax.scatter(p3[0], p3[1], color="#1b9e77", s=100, marker="*", zorder=6, label="Test point (3,4) [on PC1, err = 0]")
@@ -351,8 +404,6 @@ def run_part4(iris, pca):
     # Trace of scatter matrix
     scatter_matrix = X_centered.T @ X_centered
     trace_scatter = np.trace(scatter_matrix)
-    # Sum of sample variances * (N - 1)
-    sum_sample_vars = np.sum(np.var(X, axis=0, ddof=1)) * (N - 1)
 
     print(f"Centered matrix Frobenius norm squared: ||X_c||_F^2 = {frob_norm_sq:.6f}")
     print(f"Trace of scatter matrix Tr(X_c^T X_c)       = {trace_scatter:.6f}")
@@ -373,6 +424,18 @@ def run_part4(iris, pca):
     print(f"\nQuestion 2: PCs required for 50% variance:")
     print(f"  Cumulative ratios: {[f'{x*100:.2f}%' for x in cum_var]}")
     print(f"  Required PCs: {num_pcs_50} (PC1 alone explains {var_pc1 * 100:.2f}% > 50%)")
+
+    # Standardized comparison (correlation matrix)
+    from sklearn.preprocessing import StandardScaler
+    X_std = StandardScaler().fit_transform(X)
+    pca_std = PCA().fit(X_std)
+    std_var_pc1 = pca_std.explained_variance_ratio_[0]
+    std_var_pc2 = pca_std.explained_variance_ratio_[1]
+    std_cum_var = np.cumsum(pca_std.explained_variance_ratio_)
+    print(f"\nComparison: Standardized Features (Unit Variance / Correlation Matrix):")
+    print(f"  PC1: {std_var_pc1*100:.2f}%, PC2: {std_var_pc2*100:.2f}%")
+    print(f"  Total 2D Explained Variance: {(std_var_pc1 + std_var_pc2)*100:.2f}%")
+    print(f"  PCs for 50%: {np.argmax(std_cum_var >= 0.50) + 1} (PC1 explains {std_var_pc1*100:.2f}% > 50%)")
 
     # Scree Plot
     fig, ax1 = plt.subplots(figsize=(7.5, 4.8))
@@ -405,7 +468,7 @@ def run_part4(iris, pca):
 # ==============================================================================
 # Part 5: Non-linear Components (ISOMAP vs PCA)
 # ==============================================================================
-def run_part5(iris, X_pca):
+def run_part5(iris, pca, X_pca):
     print("\n" + "=" * 70)
     print("Part 5: Non-linear Components (ISOMAP with k=3)")
     print("=" * 70)
@@ -454,8 +517,8 @@ def run_part5(iris, X_pca):
             s=40,
             label=c_name
         )
-    ax1.set_xlabel("PCA Axis 1 (92.46% Variance)")
-    ax1.set_ylabel("PCA Axis 2 (5.31% Variance)")
+    ax1.set_xlabel(f"PCA Axis 1 ({pca.explained_variance_ratio_[0]*100:.2f}% Variance)")
+    ax1.set_ylabel(f"PCA Axis 2 ({pca.explained_variance_ratio_[1]*100:.2f}% Variance)")
     ax1.set_title("PCA: Linear Orthogonal Projection")
     ax1.grid(True, linestyle=":", alpha=0.4)
     ax1.legend(loc="upper right")
@@ -484,12 +547,12 @@ def run_part5(iris, X_pca):
 
 
 def main():
-    iris = load_iris()
+    iris = load_iris_data()
     run_part1()
     run_part2(iris)
     pca, X_pca = run_part3(iris)
     run_part4(iris, pca)
-    run_part5(iris, X_pca)
+    run_part5(iris, pca, X_pca)
     print("\nAll Part 1–5 calculations and plots completed successfully!")
 
 

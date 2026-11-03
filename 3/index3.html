@@ -75,10 +75,11 @@
             The scatter matrix <b>S</b> = <b>X&#771;</b><sup>T</sup><b>X&#771;</b> is:
             <br>
             <b>S</b> = &sum; <i>x&#771;</i><sup>(<i>i</i>)</sup> (<i>x&#771;</i><sup>(<i>i</i>)</sup>)<sup>T</sup> = 
-            &begin;bmatrix& 10 & 10 \\ 10 & 10 &end;bmatrix&.
+            <span style="display: inline-block; vertical-align: middle; border-left: 2px solid; border-right: 2px solid; border-radius: 4px; padding: 0 5px; font-family: monospace; font-size: 0.95em; line-height: 1.25;">&nbsp;10&nbsp;&nbsp;&nbsp;10<br>&nbsp;10&nbsp;&nbsp;&nbsp;10&nbsp;</span>.
             <br>
             The sample covariance matrix (unbiased, <i>N</i> &minus; 1 = 4) is 
-            <b>&Sigma;</b> = <b>S</b> / 4 = &begin;bmatrix& 2.5 & 2.5 \\ 2.5 & 2.5 &end;bmatrix&.
+            <b>&Sigma;</b> = <b>S</b> / 4 = 
+            <span style="display: inline-block; vertical-align: middle; border-left: 2px solid; border-right: 2px solid; border-radius: 4px; padding: 0 5px; font-family: monospace; font-size: 0.95em; line-height: 1.25;">&nbsp;2.5&nbsp;&nbsp;&nbsp;2.5<br>&nbsp;2.5&nbsp;&nbsp;&nbsp;2.5&nbsp;</span>.
         </li>
         <li style="margin-top: 14px;">
             <strong>Question 1 &mdash; What is the first principal component?</strong>
@@ -134,6 +135,58 @@
     <!-- ===================================================================== -->
     <h2>Part 2 &mdash; Data Visualization (Marginalization)</h2>
     <p>
+        The Iris dataset was obtained from the <a href="https://archive.ics.uci.edu/dataset/53/iris" target="_blank" rel="noopener">UCI Machine Learning Repository</a>. 
+        It comprises 150 instances of Iris flowers across 3 species (<i>Iris setosa</i>, <i>Iris versicolor</i>, <i>Iris virginica</i>), 
+        each characterized by 4 continuous morphological features:
+    </p>
+    <ul>
+        <li><b>Feature 1:</b> Sepal Length (cm)</li>
+        <li><b>Feature 2:</b> Sepal Width (cm)</li>
+        <li><b>Feature 3:</b> Petal Length (cm)</li>
+        <li><b>Feature 4:</b> Petal Width (cm)</li>
+    </ul>
+
+    <h3>Loading the Dataset</h3>
+    <p>
+        The Iris dataset was obtained from the <a href="https://archive.ics.uci.edu/dataset/53/iris" target="_blank" rel="noopener">UCI Machine Learning Repository</a>. 
+        The Python script first checks for a locally cached copy of the original UCI dataset (<code>assn3 material/iris.data</code>). 
+        If the file is unavailable, it attempts to download the dataset from the UCI archive. 
+        If the download is unsuccessful, the script falls back to the equivalent Iris dataset provided by <code>scikit-learn</code>. 
+        This ensures that the analysis can still run reliably when the UCI source is temporarily unavailable.
+    </p>
+    <pre><code>def load_iris_data():
+    """Load Iris dataset from local UCI cache, UCI repository URL, or sklearn fallback."""
+    feature_names = ["sepal length (cm)", "sepal width (cm)", "petal length (cm)", "petal width (cm)"]
+    target_names = ["setosa", "versicolor", "virginica"]
+    class_map = {"Iris-setosa": 0, "Iris-versicolor": 1, "Iris-virginica": 2}
+
+    lines = []
+    # 1. Check for locally cached UCI iris.data
+    if DATA_PATH.exists():
+        with open(DATA_PATH, "r", encoding="utf-8") as f:
+            lines = [l.strip() for l in f if l.strip()]
+    else:
+        # 2. Attempt download from UCI archive
+        try:
+            req = urllib.request.Request(UCI_URL, headers={"User-Agent": "Mozilla/5.0"})
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                content = resp.read().decode("utf-8")
+                lines = [l.strip() for l in content.splitlines() if l.strip()]
+        except Exception:
+            pass
+
+    if lines:
+        rows = [l.split(",") for l in lines]
+        X = np.array([[float(v) for v in r[:4]] for r in rows], dtype=float)
+        y = np.array([class_map[r[4]] for r in rows], dtype=int)
+        assert len(X) == 150 and X.shape[1] == 4, f"Unexpected shape {X.shape}"
+        return IrisDataset(X, y, feature_names, target_names)
+
+    # 3. Fallback to scikit-learn dataset
+    from sklearn.datasets import load_iris
+    return load_iris()</code></pre>
+
+    <p>
         Marginalization involves projecting the 4-dimensional Iris dataset onto a lower-dimensional coordinate subspace
         by selecting a subset of raw features (removing unselected feature dimensions). Below, the dataset is visualized
         marginalized onto 1 feature, 2 features, and 3 features.
@@ -177,8 +230,7 @@
     <h3>3D Marginalization &mdash; Petal Length, Petal Width, Sepal Length</h3>
     <p>
         Combining Petal Length, Petal Width, and Sepal Length creates a 3-dimensional projection. 
-        <i>Setosa</i> is distinctly isolated in 3D space, while <i>Versicolor</i> and <i>Virginica</i> 
-        occupy adjoining, elongated clusters with minor boundary overlap.
+        <i>Versicolor</i> and <i>Virginica</i> occupy partially overlapping regions, while <i>Setosa</i> remains distinctly separated.
     </p>
     <img
         class="plot"
@@ -195,16 +247,17 @@
             <strong>Petal Dimensions Highlight Clean Clusters:</strong>
             The marginalization onto <strong>Petal Length and Petal Width</strong> (Features 3 &amp; 4) produces the most prominent, well-separated clusters. 
             <i>Iris Setosa</i> is completely linearly separable from the other two species with zero overlap. 
-            <i>Versicolor</i> and <i>Virginica</i> form two distinct, elongated clusters that can be separated with high accuracy (&gt;95%) using a simple decision boundary.
+            <i>Versicolor</i> and <i>Virginica</i> form two partially overlapping clusters, although their distributions are sufficiently distinct to suggest that relatively accurate classification is possible using a suitable decision boundary.
         </li>
         <li>
             <strong>Sepal Dimensions Fail to Separate Species:</strong>
             In stark contrast, the marginalization onto <strong>Sepal Length and Sepal Width</strong> (Features 1 &amp; 2) shows significant overlap between all three species. 
-            While <i>Setosa</i> tends to have wider sepals, <i>Versicolor</i> and <i>Virginica</i> overlap almost entirely in sepal space, making accurate classification impossible from sepal measurements alone.
+            While <i>Setosa</i> tends to have wider sepals, there is considerable overlap among the three species, particularly between <i>Versicolor</i> and <i>Virginica</i>. 
+            Consequently, sepal measurements alone provide weaker visual separation than petal measurements and make classification more challenging.
         </li>
         <li>
             <strong>Conclusion:</strong>
-            Petal morphology captures the evolutionary divergence among these Iris species much more strongly than sepal dimensions. Adding a third feature (Sepal Length) provides only marginal extra discriminative benefit over the 2D Petal Length vs. Petal Width space.
+            Petal measurements provide stronger visual discrimination between the three Iris species than sepal measurements in the selected feature combinations. This suggests that petal length and width are more informative features for distinguishing the species in this dataset. Adding a third feature (Sepal Length) provides only marginal extra visual discriminative benefit over the 2D Petal Length vs. Petal Width space.
         </li>
     </ul>
 
@@ -238,38 +291,38 @@
         <tbody>
             <tr style="font-weight: bold; background: rgba(23, 107, 104, 0.08);">
                 <td>PC1 (Major Axis)</td>
-                <td>+0.3614</td>
-                <td>-0.0845</td>
-                <td>+0.8567</td>
-                <td>+0.3583</td>
-                <td>4.2282</td>
+                <td>+0.3616</td>
+                <td>-0.0823</td>
+                <td>+0.8566</td>
+                <td>+0.3588</td>
+                <td>4.2248</td>
                 <td>92.46%</td>
             </tr>
             <tr style="font-weight: bold; background: rgba(23, 107, 104, 0.08);">
                 <td>PC2</td>
-                <td>+0.6566</td>
-                <td>+0.7302</td>
-                <td>-0.1734</td>
-                <td>-0.0755</td>
-                <td>0.2427</td>
-                <td>5.31%</td>
+                <td>+0.6565</td>
+                <td>+0.7297</td>
+                <td>-0.1758</td>
+                <td>-0.0747</td>
+                <td>0.2422</td>
+                <td>5.30%</td>
             </tr>
             <tr>
                 <td>PC3</td>
-                <td>-0.5820</td>
-                <td>+0.5979</td>
-                <td>+0.0762</td>
-                <td>+0.5458</td>
-                <td>0.0782</td>
-                <td>1.71%</td>
+                <td>-0.5810</td>
+                <td>+0.5964</td>
+                <td>+0.0725</td>
+                <td>+0.5491</td>
+                <td>0.0785</td>
+                <td>1.72%</td>
             </tr>
             <tr>
                 <td>PC4</td>
-                <td>+0.3155</td>
-                <td>-0.3197</td>
-                <td>-0.4798</td>
-                <td>+0.7537</td>
-                <td>0.0238</td>
+                <td>+0.3173</td>
+                <td>-0.3241</td>
+                <td>-0.4797</td>
+                <td>+0.7511</td>
+                <td>0.0237</td>
                 <td>0.52%</td>
             </tr>
         </tbody>
@@ -282,9 +335,10 @@
 
     <h4>1D Projection &mdash; Major Axis (PC1)</h4>
     <p>
-        Projecting onto PC1 alone accounts for 92.46% of all dataset variation. 
-        <i>Setosa</i> is completely separated on the negative side of PC1, and <i>Versicolor</i> and <i>Virginica</i> 
-        are ordered cleanly along the axis with minimal overlap.
+        Projecting onto PC1 alone captures 92.46% of the total variance. 
+        <i>Setosa</i> is clearly separated from the other two species along this axis. 
+        However, <i>Versicolor</i> and <i>Virginica</i> still exhibit some overlap, indicating that the first 
+        principal component alone is insufficient for completely distinguishing all three species.
     </p>
     <img
         class="plot"
@@ -294,8 +348,12 @@
 
     <h4>2D Projection &mdash; Top 2 Axes (PC1 vs. PC2)</h4>
     <p>
-        The top 2 principal components capture 97.77% of total variance. The clusters are clearly separated, 
-        with PC1 encoding overall flower size (dominated by petal length +0.8567) and PC2 encoding sepal width/length contrast.
+        The top two principal components capture 97.76% of the total variance. 
+        PC1 is strongly influenced by petal length (+0.8566), while PC2 has positive loadings on sepal length (+0.6565) 
+        and sepal width (+0.7297) and negative loadings on petal length (&minus;0.1758) and petal width (&minus;0.0747). 
+        PC2 therefore represents a contrast between the sepal measurements and the petal measurements. 
+        The two-dimensional representation retains most of the original dataset's variation while 
+        providing a clearer visual view of the species distribution.
     </p>
     <img
         class="plot"
@@ -318,28 +376,58 @@
     <!-- ===================================================================== -->
     <h2>Part 4 &mdash; Data Compression &amp; Frobenius Norm Connection</h2>
     <p>
-        In class, we discussed the <em>analysis view</em> of PCA: PCA finds the orthogonal projection matrix 
-        that maximizes the variance of projected points, which is mathematically equivalent to minimizing the 
-        L2 reconstruction error ||<b>X</b> &minus; <b>X&#770;</b>||<sub><i>F</i></sub><sup>2</sup>.
+        In class, we discussed the <em>analysis view</em> of PCA: PCA finds a <i>K</i>-dimensional orthogonal projection 
+        that maximizes the variance retained in the projected data. Equivalently, it minimizes the total squared 
+        reconstruction error over all observations, measured by the squared Frobenius norm 
+        ||<b>X</b> &minus; <b>X&#770;</b>||<sub><i>F</i></sub><sup>2</sup>, among all rank-<i>K</i> linear orthogonal projections.
     </p>
 
     <h3>Mathematical Connection: Frobenius Norm and Variance</h3>
     <p>
-        For a centered data matrix <b>X</b><sub><i>c</i></sub> of size <i>N</i> &times; <i>D</i> (where each column has zero mean):
+        For a centered data matrix <b>X</b><sub><i>c</i></sub> of size <i>N</i> &times; <i>D</i> (where each column has zero mean), 
+        the squared Frobenius norm is equal to the trace of its scatter matrix:
     </p>
     <p style="background: var(--paper); padding: 12px 18px; border-left: 4px solid var(--accent); border-radius: 4px;">
-        ||<b>X</b><sub><i>c</i></sub>||<sub><i>F</i></sub><sup>2</sup> = &sum;<sub><i>i</i>=1</sub><sup><i>N</i></sup> &sum;<sub><i>j</i>=1</sub><sup><i>D</i></sup> (<i>x&#771;</i><sub><i>ij</i></sub>)<sup>2</sup> 
-        = Tr(<b>X</b><sub><i>c</i></sub><sup>T</sup><b>X</b><sub><i>c</i></sub>) 
-        = &sum;<sub><i>j</i>=1</sub><sup><i>D</i></sup> &lambda;<sub><i>j</i></sub> 
-        = (<i>N</i> &minus; 1) &sum;<sub><i>j</i>=1</sub><sup><i>D</i></sup> Var(<b>x</b><sub><i>j</i></sub>)
+        ||<b>X</b><sub><i>c</i></sub>||<sub><i>F</i></sub><sup>2</sup> = Tr(<b>X</b><sub><i>c</i></sub><sup>T</sup><b>X</b><sub><i>c</i></sub>).
+    </p>
+    <p>
+        Let &lambda;<sub><i>j</i></sub><sup>(<i>S</i>)</sup> denote the eigenvalues of the scatter matrix <b>S</b> = <b>X</b><sub><i>c</i></sub><sup>T</sup><b>X</b><sub><i>c</i></sub>. Then:
+    </p>
+    <p style="background: var(--paper); padding: 12px 18px; border-left: 4px solid var(--accent); border-radius: 4px;">
+        ||<b>X</b><sub><i>c</i></sub>||<sub><i>F</i></sub><sup>2</sup> = &sum;<sub><i>j</i>=1</sub><sup><i>D</i></sup> &lambda;<sub><i>j</i></sub><sup>(<i>S</i>)</sup> = (<i>N</i> &minus; 1) &sum;<sub><i>j</i>=1</sub><sup><i>D</i></sup> Var(<b>x</b><sub><i>j</i></sub>).
+    </p>
+    <p>
+        Alternatively, if &lambda;<sub><i>j</i></sub><sup>(&Sigma;)</sup> denotes the eigenvalues of the unbiased sample covariance matrix <b>&Sigma;</b> = <b>X</b><sub><i>c</i></sub><sup>T</sup><b>X</b><sub><i>c</i></sub> / (<i>N</i> &minus; 1), then:
+    </p>
+    <p style="background: var(--paper); padding: 12px 18px; border-left: 4px solid var(--accent); border-radius: 4px;">
+        &lambda;<sub><i>j</i></sub><sup>(&Sigma;)</sup> = &lambda;<sub><i>j</i></sub><sup>(<i>S</i>)</sup> / (<i>N</i> &minus; 1).
+    </p>
+    <p>
+        Thus, the total sample variance is the sum of the sample covariance eigenvalues:
+    </p>
+    <p style="background: var(--paper); padding: 12px 18px; border-left: 4px solid var(--accent); border-radius: 4px;">
+        &sum;<sub><i>j</i>=1</sub><sup><i>D</i></sup> &lambda;<sub><i>j</i></sub><sup>(&Sigma;)</sup> = ||<b>X</b><sub><i>c</i></sub>||<sub><i>F</i></sub><sup>2</sup> / (<i>N</i> &minus; 1).
+    </p>
+    <p>
+        When projected onto an orthonormal basis of <i>K</i> principal components <b>W</b><sub><i>K</i></sub> = [<b>w</b><sub>1</sub>, ..., <b>w</b><sub><i>K</i></sub>], 
+        the compressed low-dimensional representation is <b>Z</b><sub><i>K</i></sub> = <b>X</b><sub><i>c</i></sub><b>W</b><sub><i>K</i></sub>. 
+        Because the components are orthogonal, the variance captured by the representation is directly the squared Frobenius norm of <b>Z</b><sub><i>K</i></sub>:
+    </p>
+    <p style="background: var(--paper); padding: 12px 18px; border-left: 4px solid var(--accent); border-radius: 4px;">
+        ||<b>Z</b><sub><i>K</i></sub>||<sub><i>F</i></sub><sup>2</sup> = Tr(<b>Z</b><sub><i>K</i></sub><sup>T</sup><b>Z</b><sub><i>K</i></sub>) = &sum;<sub><i>k</i>=1</sub><sup><i>K</i></sup> &lambda;<sub><i>k</i></sub><sup>(<i>S</i>)</sup> = (<i>N</i> &minus; 1) &sum;<sub><i>k</i>=1</sub><sup><i>K</i></sup> &lambda;<sub><i>k</i></sub><sup>(&Sigma;)</sup>.
+    </p>
+    <p>
+        Hence, the fraction of total dataset variance explained by the <i>K</i>-dimensional representation is precisely:
+        <br>
+        <b>Explained Variance Ratio = ||Z<sub>K</sub>||<sub>F</sub><sup>2</sup> / ||X<sub>c</sub>||<sub>F</sub><sup>2</sup> = &sum;<sub>k=1</sub><sup>K</sup> &lambda;<sub>k</sub><sup>(S)</sup> / &sum;<sub>j=1</sub><sup>D</sup> &lambda;<sub>j</sub><sup>(S)</sup> = &sum;<sub>k=1</sub><sup>K</sup> &lambda;<sub>k</sub><sup>(&Sigma;)</sup> / &sum;<sub>j=1</sub><sup>D</sup> &lambda;<sub>j</sub><sup>(&Sigma;)</sup></b>.
     </p>
     <p>
         For the Iris dataset (<i>N</i> = 150, <i>D</i> = 4):
     </p>
     <ul>
-        <li>Centered matrix squared Frobenius norm: <b>||X<sub>c</sub>||<sub>F</sub><sup>2</sup> = 681.3706</b></li>
-        <li>Trace of scatter matrix: <b>Tr(X<sub>c</sub><sup>T</sup>X<sub>c</sub>) = 681.3706</b></li>
-        <li>Sum of sample covariance eigenvalues: <b>&sum; &lambda;<sub>j</sub> = 681.3706 / 149 = 4.572957</b></li>
+        <li>Centered matrix squared Frobenius norm: <b>||X<sub>c</sub>||<sub>F</sub><sup>2</sup> = 680.8244</b></li>
+        <li>Trace of scatter matrix: <b>Tr(X<sub>c</sub><sup>T</sup>X<sub>c</sub>) = &sum; &lambda;<sub>j</sub><sup>(S)</sup> = 680.8244</b></li>
+        <li>Sum of sample covariance eigenvalues: <b>&sum; &lambda;<sub>j</sub><sup>(&Sigma;)</sup> = 680.8244 / 149 = 4.569291</b></li>
     </ul>
 
     <h3>Answers to Prompt Questions</h3>
@@ -349,21 +437,25 @@
             <br>
             The two-dimensional representation retains the top two principal components (PC1 and PC2):
             <ul>
-                <li>Variance of PC1: &lambda;<sub>1</sub> = 4.228242 &implies; <b>92.4619%</b></li>
-                <li>Variance of PC2: &lambda;<sub>2</sub> = 0.242671 &implies; <b>5.3066%</b></li>
+                <li>First principal component (PC1): <b>92.46%</b> of total variance (&lambda;<sub>1</sub><sup>(&Sigma;)</sup> = 4.2248)</li>
+                <li>Second principal component (PC2): <b>5.30%</b> of total variance (&lambda;<sub>2</sub><sup>(&Sigma;)</sup> = 0.2422)</li>
             </ul>
-            Together, the two-dimensional representation captures:
+            By the Frobenius norm connection:
             <br>
-            <b style="font-size: 1.1em; color: var(--accent);">92.4619% + 5.3066% = 97.7685% of the total variance</b>.
+            <b style="font-size: 1.1em; color: var(--accent);">
+                ||Z<sub>2</sub>||<sub>F</sub><sup>2</sup> / ||X<sub>c</sub>||<sub>F</sub><sup>2</sup> = &sum;<sub>k=1</sub><sup>2</sup> &lambda;<sub>k</sub><sup>(S)</sup> / &sum;<sub>j=1</sub><sup>4</sup> &lambda;<sub>j</sub><sup>(S)</sup> &approx; 97.76%
+            </b>.
             <br>
-            This means 2 numbers per flower retain over 97.7% of the total structural information present in the original 4-dimensional measurements.
+            Together, the first two principal components account for approximately <b>97.76%</b> of the total variance in the dataset.
+            <br>
+            <i>(Note: If features are standardized to unit variance prior to PCA, PC1 explains 72.77% and PC2 explains 23.03%, yielding <b>95.80%</b> total variance in 2D. Both approaches retain more than 95% of the total variance under their respective feature-scaling conventions. However, the primary analysis in this assignment uses the original, unstandardized features).</i>
         </li>
         <li style="margin-top: 14px;">
             <strong>How many PCs are required to explain 50% of the variance in the data?</strong>
             <br>
             <b style="font-size: 1.1em; color: var(--accent);">Only 1 principal component is required.</b>
             <br>
-            As shown in the table and scree plot, the first principal component alone explains <b>92.46%</b> of the total variance, which by itself overwhelmingly exceeds the 50% threshold.
+            The first principal component alone accounts for <b>92.46%</b> of total variance (or 72.77% if standardized), which by itself substantially surpasses the 50% threshold.
         </li>
     </ol>
 
@@ -386,18 +478,53 @@
 
     <h3>ISOMAP Algorithm &amp; Implementation (<i>k</i> = 3)</h3>
     <p>
-        ISOMAP replaces pairwise Euclidean distances with approximate <em>geodesic distances</em> (shortest path lengths 
-        along a graph where edges connect only the <i>k</i>-nearest neighbours), and then embeds the points into 2D space 
-        using classical MultiDimensional Scaling (MDS).
+        ISOMAP first constructs a neighbourhood graph using the <i>k</i>-nearest neighbours of each data point. 
+        It then estimates the geodesic distance between pairs of points by computing shortest-path distances through this graph. 
+        Finally, it applies a multidimensional scaling-based embedding to represent the geodesic distance structure in a lower-dimensional space.
     </p>
     <p>
-        Using <code>sklearn.manifold.Isomap(n_neighbors=3, n_components=2)</code>:
+        In <code>scikit-learn</code>, the <code>Isomap</code> implementation uses a kernel PCA-based eigendecomposition to obtain the embedding 
+        (pairing neighbourhood graph shortest paths with classical MDS). For this experiment, three nearest neighbours (<i>k</i> = 3) and 
+        two output dimensions were selected as specified in the assignment.
+    </p>
+    <p>
+        <strong>Graph Connectivity Limitation:</strong> With three nearest neighbours, the Iris neighbourhood graph is disconnected into two components: 
+        the 50 <i>Setosa</i> samples form one component, and the remaining 100 <i>Versicolor</i> and <i>Virginica</i> samples form the second. 
+        Scikit-learn detects this disconnected structure and attempts to connect the components when computing the ISOMAP embedding. 
+        This graph completion can introduce estimated connections between originally disconnected components, potentially affecting the resulting embedding and its interpretation.
+    </p>
+    <p>
+        The following code shows the core implementation for fitting ISOMAP and generating the visualization, using the previously loaded Iris dataset:
     </p>
     <pre><code>from sklearn.manifold import Isomap
+import matplotlib.pyplot as plt
 
-# Fit 2D ISOMAP embedding using 3-nearest neighbours
+# 1. Fit 2D ISOMAP embedding using 3-nearest neighbours
 isomap = Isomap(n_neighbors=3, n_components=2)
-X_isomap = isomap.fit_transform(X)</code></pre>
+X_isomap = isomap.fit_transform(X)
+
+# 2. Visualize the 2D ISOMAP embedding colored by species
+plt.figure(figsize=(8, 5.5))
+colors = ["#1f77b4", "#ff7f0e", "#2ca02c"]
+target_names = ["setosa", "versicolor", "virginica"]
+
+for c_idx, (c_name, color) in enumerate(zip(target_names, colors)):
+    plt.scatter(
+        X_isomap[y == c_idx, 0],
+        X_isomap[y == c_idx, 1],
+        color=color,
+        alpha=0.8,
+        s=45,
+        label=c_name
+    )
+
+plt.xlabel("ISOMAP Component 1")
+plt.ylabel("ISOMAP Component 2")
+plt.title("Part 5: ISOMAP Embedding (3-Nearest Neighbours, 2 Components)")
+plt.grid(True, linestyle=":", alpha=0.4)
+plt.legend(loc="upper right")
+plt.tight_layout()
+plt.savefig("media/part5_isomap_k3.png", dpi=200)</code></pre>
 
     <div class="plot-group">
         <figure>
@@ -429,7 +556,7 @@ X_isomap = isomap.fit_transform(X)</code></pre>
                 <th>Evaluation Criteria</th>
                 <th>Linear PCA</th>
                 <th>Non-Linear ISOMAP (<i>k</i> = 3)</th>
-                <th>Winner / Preference</th>
+                <th>Comparison Summary</th>
             </tr>
         </thead>
         <tbody>
@@ -437,58 +564,77 @@ X_isomap = isomap.fit_transform(X)</code></pre>
                 <td><b>Data Compression</b></td>
                 <td>
                     <b>Analytical, linear projection &amp; decompression:</b>
-                    Provides explicit orthogonal matrix <b>W</b>. Encoding is <b>z</b> = <b>W</b><sup>T</sup>(<b>x</b> &minus; <b>&mu;</b>), and decoding is <b>x&#770;</b> = <b>Wz</b> + <b>&mu;</b>. 
-                    Reconstruction error is mathematically minimized (||<b>X</b> &minus; <b>X&#770;</b>||<sub><i>F</i></sub><sup>2</sup>), and new data points can be compressed and decompressed instantly.
+                    Provides an explicit orthogonal projection matrix <b>W</b>. Encoding is <b>z</b> = <b>W</b><sup>T</sup>(<b>x</b> &minus; <b>&mu;</b>), and decoding is <b>x&#770;</b> = <b>Wz</b> + <b>&mu;</b>. 
+                    Reconstruction error is mathematically minimized (||<b>X</b> &minus; <b>X&#770;</b>||<sub><i>F</i></sub><sup>2</sup>), retaining 97.76% of total dataset variance in 2D.
                 </td>
                 <td>
                     <b>Non-parametric embedding:</b>
-                    ISOMAP preserves pairwise graph geodesic distances, but does not provide an explicit projection matrix or exact inverse mapping. 
-                    Decompressing/reconstructing raw feature coordinates requires solving an ill-posed non-linear "pre-image problem".
+                    ISOMAP does not provide a simple linear projection matrix like PCA. Scikit-learn does support a <code>transform()</code> method for embedding new samples using their neighbourhood relationships with the training data. 
+                    However, reconstructing original feature values from the low-dimensional embedding is not directly equivalent to PCA's inverse linear transformation.
                 </td>
-                <td><b style="color: var(--accent);">PCA (Far Superior)</b></td>
+                <td><b style="color: var(--accent);">PCA (Clear Advantage)</b></td>
             </tr>
             <tr>
-                <td><b>Classification Discriminability</b></td>
+                <td><b>Class Separation &amp; Geometry</b></td>
                 <td>
-                    <b>Preserves global cluster geometry:</b>
-                    Separates <i>Setosa</i> completely and forms two clean, compact clusters for <i>Versicolor</i> and <i>Virginica</i>. 
-                    Linear classifiers (e.g. LDA, Linear SVM) achieve &gt;97% accuracy on the 2D PCA representation.
+                    <b>Preserves global data structure:</b>
+                    PCA provides a two-dimensional representation in which <i>Setosa</i> is clearly separated from the other two species. 
+                    <i>Versicolor</i> and <i>Virginica</i> still show some overlap, but their distributions are distinguishable to a considerable extent. 
+                    The separation can be visually assessed using the two-dimensional PCA plot.
                 </td>
                 <td>
-                    <b>Graph sensitivity at <i>k</i> = 3:</b>
-                    Because <i>Setosa</i> is far from the other species, a 3-nearest neighbour graph is actually <i>disconnected</i> (splits into 2 disjoint components), forcing graph completion. 
-                    The resulting embedding pulls the clusters into irregular filamentary structures without improving class separation.
+                    <b>Graph sensitivity:</b>
+                    The disconnected 3-nearest-neighbour graph requires graph completion during the ISOMAP computation. 
+                    This can affect the relative positioning of the resulting clusters. 
+                    The embedding should therefore be interpreted with caution, and clearer visual separation should not automatically be considered evidence of better classification performance.
                 </td>
-                <td><b style="color: var(--accent);">PCA (More Robust)</b></td>
+                <td><b style="color: var(--accent);">PCA (More Stable)</b></td>
             </tr>
             <tr>
-                <td><b>Computational Complexity &amp; Out-of-Sample Mapping</b></td>
+                <td><b>Computational Requirements</b></td>
                 <td>
-                    <b><i>O</i>(<i>ND</i><sup>2</sup> + <i>D</i><sup>3</sup>):</b>
-                    Extremely fast covariance eigendecomposition. Compressing new points takes a single vector-matrix multiplication <i>O</i>(<i>D</i>).
+                    Generally efficient, particularly when the feature dimension is small.
                 </td>
                 <td>
-                    <b><i>O</i>(<i>N</i><sup>3</sup>):</b>
-                    Requires finding <i>k</i>-NN, running all-pairs shortest paths (Dijkstra/Floyd-Warshall), and eigendecomposition of an <i>N</i> &times; <i>N</i> kernel matrix. 
-                    Out-of-sample mapping requires graph interpolation.
+                    More computationally demanding due to neighbour graph construction, shortest-path computation, and embedding.
                 </td>
-                <td><b style="color: var(--accent);">PCA (Much Faster)</b></td>
+                <td><b style="color: var(--accent);">PCA (More Efficient)</b></td>
+            </tr>
+            <tr>
+                <td><b>New Data Projection</b></td>
+                <td>
+                    Simple projection using the learned PCA axes (<b>z</b> = <b>W</b><sup>T</sup><b>x&#771;</b>).
+                </td>
+                <td>
+                    Uses neighbourhood relationships with the training data through <code>transform()</code>.
+                </td>
+                <td><b style="color: var(--accent);">PCA (Simpler)</b></td>
             </tr>
         </tbody>
     </table>
 
     <p>
         <strong>Conclusion &amp; Recommendation:</strong><br>
-        For the Iris dataset, <strong>PCA is definitively preferable</strong> over ISOMAP:
+        For the Iris dataset, <strong>PCA is preferable</strong> for this particular dimensionality-reduction task:
     </p>
     <ul>
         <li>
-            <strong>Under Data Compression Criteria:</strong> PCA is strictly superior because it provides an analytical, optimal linear compression scheme with exact guarantees on preserved variance (97.77%) and trivial decompression (decoding). ISOMAP cannot be directly used for practical data compression because it lacks an inverse transform.
+            <strong>Under the Data Compression Criterion:</strong> PCA provides a clear advantage. Its first two principal components retain approximately 97.76% of the original dataset's variance, while also providing an explicit linear transformation for projecting and reconstructing data.
         </li>
         <li>
-            <strong>Under Classification Criteria:</strong> The Iris dataset does not live on a complex curved manifold (such as a Swiss roll or Möbius strip); its classes naturally form convex ellipsoidal clusters in Euclidean space. Consequently, non-linear geodesic unrolling offers no geometric advantage, while the small neighbourhood size (<i>k</i> = 3) introduces sensitivity to graph bottlenecks and disconnected components. PCA preserves global Euclidean cluster separations cleanly and reliably.
+            <strong>Under the Visualization and Classification Criterion:</strong> PCA provides a stable representation of the global data structure, with <i>Setosa</i> clearly separated from the other species. ISOMAP attempts to preserve local manifold relationships, but its performance with three nearest neighbours is affected by the disconnected neighbourhood graph and subsequent graph completion.
         </li>
     </ul>
+    <p>
+        Therefore, PCA is the more suitable method for this Iris dataset when considering both variance preservation and practical dimensionality reduction. 
+        ISOMAP remains useful for datasets with meaningful nonlinear manifold structures, where preserving geodesic distances may reveal patterns that linear PCA cannot capture.
+    </p>
+
+    <hr style="margin-top: 48px; border: 0; border-top: 1px solid var(--line);">
+    <p>
+        The complete Python source code for all parts of Assignment 3 is available here: 
+        <a href="./run_pca.py"><code>run_pca.py</code></a>.
+    </p>
 
 </body>
 </html>
