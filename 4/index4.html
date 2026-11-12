@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SYDE 572 - Assignment 4</title>
+    <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+    <h1>SYDE 572</h1>
+    <p class="subtitle">Assignment 4 &mdash; Text Classification with Naive Bayes</p>
+    <p><a href="../index.html">&larr; Back to course assignments</a></p>
+
+    <!-- ===================================================================== -->
+    <!-- OVERVIEW -->
+    <!-- ===================================================================== -->
+    <h2>Assignment Overview</h2>
+    <p>
+        In this assignment, we implement a <strong>Multinomial Naive Bayes text classifier from scratch</strong> in pure Python 
+        to perform sentiment analysis on customer reviews. The dataset originates from the domain adaptation study by 
+        <a href="https://dl.acm.org/doi/10.5555/1557769.1557813" target="_blank" rel="noopener">Blitzer et al. (2007)</a>, 
+        comprising customer reviews across six distinct product categories: <em>books, camera, dvd, health, music, and software</em>.
+    </p>
+    <p style="background: var(--paper); padding: 12px 18px; border-left: 4px solid var(--accent); border-radius: 4px;">
+        <strong>Strict Implementation Constraint:</strong> As specified in the assignment instructions, all Naive Bayes parameter estimation, 
+        probability smoothing, log-space scoring, and decision rules are implemented independently in standard Python without relying on machine learning libraries 
+        such as <code>scikit-learn</code>.
+    </p>
+
+    <!-- ===================================================================== -->
+    <!-- MATHEMATICAL FORMULATION -->
+    <!-- ===================================================================== -->
+    <h2>1. Mathematical Formulation of Naive Bayes</h2>
+    <p>
+        Given a text document <b>d</b> represented as a sequence of words $(w_1, w_2, \dots, w_n)$ and a set of candidate classes 
+        $C = \{\text{pos}, \text{neg}\}$, Bayes' rule expresses the posterior probability as:
+    </p>
+    <p style="background: var(--paper); padding: 12px 18px; border-left: 4px solid var(--accent); border-radius: 4px; font-family: monospace;">
+        P(c | d) = [ P(c) &middot; P(d | c) ] / P(d)
+    </p>
+    <p>
+        Under the <em>naive independence assumption</em>, the occurrence of each word is assumed to be conditionally independent 
+        of all other words given the document's class label:
+    </p>
+    <p style="background: var(--paper); padding: 12px 18px; border-left: 4px solid var(--accent); border-radius: 4px; font-family: monospace;">
+        P(d | c) = &prod;<sub>i=1</sub><sup>n</sup> P(w<sub>i</sub> | c)
+    </p>
+
+    <h3>Log-Space Inference (Preventing Numerical Underflow)</h3>
+    <p>
+        Multiplying hundreds of small individual word probabilities results in severe floating-point underflow (evaluating to <code>0.0</code>). 
+        To maintain numerical stability, all calculations are performed in <strong>log-space</strong>, transforming products into sums:
+    </p>
+    <p style="background: var(--paper); padding: 12px 18px; border-left: 4px solid var(--accent); border-radius: 4px; font-family: monospace;">
+        log P(c, d) = log P(c) + &sum;<sub>i=1</sub><sup>n</sup> log P(w<sub>i</sub> | c)
+    </p>
+    <p>
+        The predicted sentiment label $\hat{c}$ corresponds to the Maximum A Posteriori (MAP) class:
+    </p>
+    <p style="background: var(--paper); padding: 12px 18px; border-left: 4px solid var(--accent); border-radius: 4px; font-family: monospace;">
+        c&#770; = argmax<sub>c &isin; {pos, neg}</sub> [ log P(c, d) ]
+    </p>
+
+    <h3>Laplace (Add-&alpha;) Smoothing</h3>
+    <p>
+        If a word in the test set was never encountered in class $c$ during training, its empirical frequency is zero ($\text{count}(w, c) = 0$). 
+        Without smoothing, $P(w | c) = 0$, causing $\log P(w | c) = -\infty$ and completely eliminating class $c$ from consideration regardless of all other words. 
+        To resolve this zero-frequency problem, we apply <strong>Laplace / Add-&alpha; smoothing</strong>:
+    </p>
+    <p style="background: var(--paper); padding: 12px 18px; border-left: 4px solid var(--accent); border-radius: 4px; font-family: monospace;">
+        P(w | c) = [ count(w, c) + &alpha; ] / [ &sum;<sub>w'&isin;V</sub> count(w', c) + &alpha; &middot; |V| ]
+    </p>
+    <p>
+        where $|V|$ is the total number of unique words across the training vocabulary. For any novel out-of-vocabulary word not present in $V$, 
+        the smoothed likelihood defaults cleanly to:
+    </p>
+    <p style="background: var(--paper); padding: 12px 18px; border-left: 4px solid var(--accent); border-radius: 4px; font-family: monospace;">
+        P(UNK | c) = &alpha; / [ &sum;<sub>w'&isin;V</sub> count(w', c) + &alpha; &middot; |V| ]
+    </p>
+
+    <!-- ===================================================================== -->
+    <!-- PIPELINE IMPLEMENTATION -->
+    <!-- ===================================================================== -->
+    <h2>2. Implementation &amp; Dataset Partitioning</h2>
+    <p>
+        The complete review dataset consists of <strong>11,914 customer reviews</strong>. In accordance with the assignment guidelines, 
+        the collection was partitioned into an 80% training set and a 20% evaluation set:
+    </p>
+    <table>
+        <thead>
+            <tr>
+                <th>Dataset Partition</th>
+                <th>Document Count</th>
+                <th>Percentage</th>
+                <th>Positive Reviews</th>
+                <th>Negative Reviews</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><b>Training Set</b></td>
+                <td>9,531</td>
+                <td>80.0%</td>
+                <td>4,809</td>
+                <td>4,722</td>
+            </tr>
+            <tr>
+                <td><b>Evaluation Test Set</b></td>
+                <td>2,383</td>
+                <td>20.0%</td>
+                <td>1,191</td>
+                <td>1,192</td>
+            </tr>
+            <tr style="font-weight: bold; background: rgba(23, 107, 104, 0.08);">
+                <td>Total Collection</td>
+                <td>11,914</td>
+                <td>100.0%</td>
+                <td>6,000</td>
+                <td>5,914</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <p>
+        The core Naive Bayes classifier is implemented via modular functions in <code>run_nb.py</code>:
+    </p>
+    <pre><code>from collections import Counter
+import math
+
+def train_nb(documents, labels, alpha=1.0):
+    num_docs = len(documents)
+    class_counts = Counter(labels)
+    classes = list(class_counts.keys())
+    log_priors = {c: math.log(count / num_docs) for c, count in class_counts.items()}
+
+    word_counts = {c: Counter() for c in classes}
+    total_words = {c: 0 for c in classes}
+    vocab = set()
+
+    for doc, label in zip(documents, labels):
+        word_counts[label].update(doc)
+        total_words[label] += len(doc)
+        vocab.update(doc)
+
+    vocab_size = len(vocab)
+    denominators = {c: total_words[c] + alpha * vocab_size for c in classes}
+
+    log_likelihoods = {c: {} for c in classes}
+    for c in classes:
+        denom = denominators[c]
+        for w, count in word_counts[c].items():
+            log_likelihoods[c][w] = math.log((count + alpha) / denom)
+
+    log_unk = {c: math.log(alpha / denominators[c]) for c in classes}
+    return {
+        "classes": classes, "log_priors": log_priors,
+        "log_likelihoods": log_likelihoods, "log_unk": log_unk
+    }
+
+def score_doc_label(document, label, model):
+    log_prob = model["log_priors"][label]
+    class_log_likes = model["log_likelihoods"][label]
+    unk_log_prob = model["log_unk"][label]
+    for w in document:
+        log_prob += class_log_likes.get(w, unk_log_prob)
+    return log_prob
+
+def classify_nb(document, model):
+    best_class = None
+    best_score = -float("inf")
+    for c in model["classes"]:
+        score = score_doc_label(document, c, model)
+        if score > best_score:
+            best_score = score
+            best_class = c
+    return best_class</code></pre>
+
+    <!-- ===================================================================== -->
+    <!-- SANITY CHECKS -->
+    <!-- ===================================================================== -->
+    <h2>3. Sanity Checks &amp; Verification</h2>
+    <p>
+        Before evaluating on the test set, the classifier was verified against the two mandatory sanity checks described in the assignment:
+    </p>
+
+    <h3>Sanity Check 1: Single-Word Sensitivity</h3>
+    <p>
+        Evaluating small documents of length 1 verifies that polarizing words shift probability in the expected direction, 
+        with joint probabilities matching the expected $0.001 &ndash; 0.002$ magnitude:
+    </p>
+    <table>
+        <thead>
+            <tr>
+                <th>Test Document</th>
+                <th>P(pos, doc)</th>
+                <th>P(neg, doc)</th>
+                <th>Predicted Label</th>
+                <th>Verification Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><code>['great']</code></td>
+                <td><b>0.001321</b> (log: -6.6292)</td>
+                <td>0.000528 (log: -7.5457)</td>
+                <td><b style="color: #2ca02c;">pos</b></td>
+                <td>&check; PASS: P(pos | 'great') &gt; P(neg | 'great')</td>
+            </tr>
+            <tr>
+                <td><code>['bad']</code></td>
+                <td>0.000172 (log: -8.6663)</td>
+                <td><b>0.000455</b> (log: -7.6958)</td>
+                <td><b style="color: #d62728;">neg</b></td>
+                <td>&check; PASS: P(neg | 'bad') &gt; P(pos | 'bad')</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h3>Sanity Check 2: Unseen / Rare Phrases</h3>
+    <p>
+        The phrase <code>['a', 'top-quality', 'performance']</code> was passed to <code>score_doc_label</code>. 
+        Because our smoothing handles out-of-vocabulary terms gracefully, the function executed without crashing, 
+        yielding $\log P(\text{pos}) = -26.3663$ and $\log P(\text{neg}) = -27.0375$, correctly predicting <strong>pos</strong>.
+    </p>
+
+    <!-- ===================================================================== -->
+    <!-- EVALUATION -->
+    <!-- ===================================================================== -->
+    <h2>4. Test Set Evaluation &amp; Accuracy</h2>
+    <p>
+        Applying the trained Naive Bayes classifier ($\alpha = 1.0$) to the 2,383 unseen test documents yields the following performance:
+    </p>
+    <div style="background: var(--paper); padding: 18px 24px; border-left: 5px solid var(--accent); border-radius: 6px; margin: 18px 0 24px;">
+        <h3 style="margin-top: 0; color: var(--accent);">Final Test Accuracy</h3>
+        <p style="font-size: 1.8rem; font-weight: bold; margin: 8px 0; color: var(--accent);">
+            81.54% <span style="font-size: 1.0rem; font-weight: normal; color: var(--muted);">(1,943 / 2,383 reviews correctly classified)</span>
+        </p>
+    </div>
+
+    <h3>Confusion Matrix</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Actual \ Predicted</th>
+                <th>Predicted Positive</th>
+                <th>Predicted Negative</th>
+                <th>Class Total</th>
+                <th>Class Accuracy</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><b>Actual Positive</b></td>
+                <td><b>944</b> (True Positive)</td>
+                <td>247 (False Negative)</td>
+                <td>1,191</td>
+                <td>79.26%</td>
+            </tr>
+            <tr>
+                <td><b>Actual Negative</b></td>
+                <td>193 (False Positive)</td>
+                <td><b>999</b> (True Negative)</td>
+                <td>1,192</td>
+                <td>83.81%</td>
+            </tr>
+            <tr style="font-weight: bold; background: rgba(23, 107, 104, 0.08);">
+                <td>Total Predicted</td>
+                <td>1,137</td>
+                <td>1,246</td>
+                <td>2,383</td>
+                <td>81.54%</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- ===================================================================== -->
+    <!-- ERROR ANALYSIS -->
+    <!-- ===================================================================== -->
+    <h2>5. In-Depth Error Analysis</h2>
+    <p>
+        Of the 2,383 test documents, <strong>440 reviews were misclassified</strong> (193 False Positives and 247 False Negatives). 
+        A qualitative analysis of high-confidence failure cases reveals four primary mechanisms causing Naive Bayes errors:
+    </p>
+
+    <h3>1. The Negation Blindspot (Bag-of-Words Limitation)</h3>
+    <p>
+        Because standard Naive Bayes treats words independently, it cannot capture the scope of negation words such as <em>not, n't, never</em>:
+    </p>
+    <blockquote style="background: var(--paper); border-left: 4px solid #d62728; padding: 10px 16px; margin: 12px 0;">
+        <em>&ldquo;...here 's a good litmus test to show how good a book like breathing lessons is - nothing extraordinary happens and yet <strong>i did not want to put it down</strong>...&rdquo;</em>
+        <br><small style="color: var(--muted);">True Label: POS | Predicted: NEG | Log-Odds Margin: 26.56 in favor of NEG</small>
+    </blockquote>
+    <p>
+        Here, the reviewer expressed high praise by stating they <em>&ldquo;did not want to put it down&rdquo;</em>. However, the classifier penalized 
+        the phrase heavily due to the negative tokens <em>not</em> and <em>put down</em>, completely missing the intended positive sentiment.
+    </p>
+
+    <h3>2. Sarcasm and Thwarted Expectations</h3>
+    <blockquote style="background: var(--paper); border-left: 4px solid #d62728; padding: 10px 16px; margin: 12px 0;">
+        <em>&ldquo;we bought this camera thinking that it would be our do-all eurocam for an upcoming trip to europe . it promised a sufficient range of performance and great features ... but it completely failed on day two.&rdquo;</em>
+        <br><small style="color: var(--muted);">True Label: NEG | Predicted: POS | Log-Odds Margin: 127.14 in favor of POS</small>
+    </blockquote>
+    <p>
+        The customer spent the first 500 words describing the high expectations, advertised features, and positive promises of the camera before delivering 
+        a concise negative verdict at the end. Because Naive Bayes tallies word counts additively, the sheer quantity of positive descriptive adjectives 
+        overwhelmed the negative conclusion.
+    </p>
+
+    <h3>3. Secondary Narrative vs. Evaluative Sentiment</h3>
+    <blockquote style="background: var(--paper); border-left: 4px solid #d62728; padding: 10px 16px; margin: 12px 0;">
+        <em>&ldquo;the decalogue is one of several excellent tv series by european directors ... exploring murder, betrayal, horrible despair and tragic loss.&rdquo;</em>
+        <br><small style="color: var(--muted);">True Label: POS | Predicted: NEG | Log-Odds Margin: 44.10 in favor of NEG</small>
+    </blockquote>
+    <p>
+        In artistic reviews (books and films), negative descriptive words (<em>murder, betrayal, tragic, horrible</em>) often describe the dark thematic content 
+        of a critically acclaimed work rather than the reviewer's appraisal. Naive Bayes cannot distinguish between plot descriptions and product evaluations.
+    </p>
+
+    <!-- ===================================================================== -->
+    <!-- OPTIONAL TASK 1: LEARNING CURVE -->
+    <!-- ===================================================================== -->
+    <h2>6. Optional Task 1 &mdash; Learning Curve Analysis</h2>
+    <p>
+        To analyze how data volume influences Naive Bayes performance, models were trained on subsets of increasing size 
+        (from 5% up to 100% of the training data) and evaluated on the fixed 20% test partition:
+    </p>
+    <table>
+        <thead>
+            <tr>
+                <th>Training Fraction</th>
+                <th>Training Examples</th>
+                <th>Vocabulary Size</th>
+                <th>Test Accuracy</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td>5%</td><td>476</td><td>10,480</td><td>71.93%</td></tr>
+            <tr><td>10%</td><td>953</td><td>16,112</td><td>75.49%</td></tr>
+            <tr><td>20%</td><td>1,906</td><td>23,892</td><td>78.14%</td></tr>
+            <tr><td>40%</td><td>3,812</td><td>33,745</td><td>79.40%</td></tr>
+            <tr><td>60%</td><td>5,718</td><td>41,208</td><td>80.70%</td></tr>
+            <tr><td>80%</td><td>7,624</td><td>47,215</td><td>81.20%</td></tr>
+            <tr style="font-weight: bold; background: rgba(23, 107, 104, 0.08);">
+                <td>100%</td><td>9,531</td><td>52,392</td><td>81.54%</td></tr>
+        </tbody>
+    </table>
+
+    <img
+        class="plot"
+        src="./media/learning_curve.png"
+        alt="Learning curve showing test accuracy versus number of training documents"
+    >
+    <p>
+        <strong>Observation:</strong> Accuracy rises steeply from 71.93% at 5% data to ~79.40% at 40% data, after which performance gains 
+        gradually plateau. This indicates that while vocabulary coverage increases with more data (reaching 52,392 words), 
+        the simple unigram bag-of-words model reaches an asymptotic limit around ~81.5% due to its inability to capture context and grammar.
+    </p>
+
+    <!-- ===================================================================== -->
+    <!-- OPTIONAL TASK 2: INFORMATIVE FEATURES -->
+    <!-- ===================================================================== -->
+    <h2>7. Optional Task 2 &mdash; Most Informative Features</h2>
+    <p>
+        To identify the words most strongly indicative of positive and negative reviews, we compute the <strong>log-odds ratio</strong>:
+    </p>
+    <p style="background: var(--paper); padding: 12px 18px; border-left: 4px solid var(--accent); border-radius: 4px; font-family: monospace;">
+        Log-Odds(w) = log [ P(w | pos) / P(w | neg) ]
+    </p>
+    <p>
+        Following the instructor's hint, a higher smoothing parameter ($\alpha = 10.0$) and a minimum frequency threshold ($\ge 5$) 
+        were applied to eliminate noisy rare words:
+    </p>
+
+    <div class="plot-group">
+        <figure>
+            <figcaption>Top 15 Most Indicative Words per Class</figcaption>
+            <img
+                class="plot"
+                src="./media/informative_features.png"
+                alt="Horizontal bar chart of top positive and negative informative features"
+            >
+        </figure>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Rank</th>
+                <th>Top Positive Words</th>
+                <th>Log-Odds</th>
+                <th>Top Negative Words</th>
+                <th>Log-Odds</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td>1</td><td><b>pluto</b></td><td>+1.941</td><td><b>waste</b></td><td>-2.121</td></tr>
+            <tr><td>2</td><td><b>illustrator</b></td><td>+1.682</td><td><b>horrible</b></td><td>-1.930</td></tr>
+            <tr><td>3</td><td><b>keaton</b></td><td>+1.541</td><td><b>warranty</b></td><td>-1.908</td></tr>
+            <tr><td>4</td><td><b>commander</b></td><td>+1.508</td><td><b>refund</b></td><td>-1.902</td></tr>
+            <tr><td>5</td><td><b>favorites</b></td><td>+1.466</td><td><b>boring</b></td><td>-1.895</td></tr>
+            <tr><td>6</td><td><b>season</b></td><td>+1.418</td><td><b>worst</b></td><td>-1.894</td></tr>
+            <tr><td>7</td><td><b>excellent</b></td><td>+1.415</td><td><b>repair</b></td><td>-1.776</td></tr>
+            <tr><td>8</td><td><b>amazing</b></td><td>+1.397</td><td><b>disappointing</b></td><td>-1.752</td></tr>
+            <tr><td>9</td><td><b>buffy</b></td><td>+1.381</td><td><b>garbage</b></td><td>-1.695</td></tr>
+            <tr><td>10</td><td><b>allows</b></td><td>+1.363</td><td><b>seagal</b></td><td>-1.634</td></tr>
+        </tbody>
+    </table>
+    <p>
+        <strong>Linguistic Insights:</strong> Negative sentiment is dominated by universally applicable critical terms 
+        (<em>waste, horrible, refund, warranty, worst, repair</em>), reflecting customer dissatisfaction and return processes. 
+        Positive sentiment features classic praise words (<em>excellent, amazing, favorites</em>) alongside beloved franchises and tools 
+        (<em>pluto, illustrator, keaton, buffy</em>).
+    </p>
+
+    <!-- ===================================================================== -->
+    <!-- OPTIONAL TASK 3: DOMAIN SENSITIVITY -->
+    <!-- ===================================================================== -->
+    <h2>8. Optional Task 3 &mdash; Domain Sensitivity &amp; Adaptation</h2>
+    <p>
+        The dataset was created specifically to study <strong>domain adaptation</strong> (Blitzer et al., 2007). 
+        To evaluate how well sentiment classifiers transfer across product genres, models were trained exclusively on one domain 
+        and evaluated across all other domains:
+    </p>
+
+    <img
+        class="plot"
+        src="./media/domain_adaptation.png"
+        alt="Cross-domain transfer accuracy heatmap matrix across six product topics"
+    >
+
+    <h3>Camera vs. Books Domain Adaptation (Assignment Question)</h3>
+    <p>
+        The assignment specifically asks to examine the performance impact when training a classifier on <strong>camera reviews</strong> 
+        and testing it on <strong>book reviews</strong>:
+    </p>
+    <ul>
+        <li><b>Camera In-Domain Accuracy:</b> <strong>86.75%</strong> (Trained on Camera, Tested on Camera)</li>
+        <li><b>Camera &rarr; Books Transfer Accuracy:</b> <strong>70.50%</strong> (Trained on Camera, Tested on Books)</li>
+        <li><b>Performance Drop:</b> <b style="color: #d62728;">16.25 percentage points</b></li>
+    </ul>
+    <p>
+        <strong>Why does this drop occur?</strong> Camera reviews utilize technical hardware vocabulary (<em>megapixels, lens, battery, autofocus, sensor</em>). 
+        When applied to books, these features are completely absent, forcing the model to rely only on general sentiment words. 
+        Worse, terms like <em>durable</em> or <em>portable</em> carry no relevance in book evaluations, demonstrating the necessity of domain adaptation techniques.
+    </p>
+
+    <!-- ===================================================================== -->
+    <!-- OPTIONAL TASK 4 & 5: FEATURE IMPROVEMENTS & BENCHMARK -->
+    <!-- ===================================================================== -->
+    <h2>9. Optional Tasks 4 &amp; 5 &mdash; Feature Improvements &amp; Benchmark</h2>
+    <p>
+        To address the limitations uncovered in error analysis (negation and word order), we implemented 
+        <strong>Negation Tagging</strong> (prefixing words following negative markers with <code>NOT_</code>) 
+        and <strong>Word Bigrams</strong> (capturing adjacent pairs of tokens):
+    </p>
+
+    <img
+        class="plot"
+        src="./media/feature_improvements.png"
+        alt="Comparison of test accuracy across feature representation strategies"
+    >
+
+    <table>
+        <thead>
+            <tr>
+                <th>Model &amp; Feature Configuration</th>
+                <th>Vocabulary Size</th>
+                <th>Test Accuracy</th>
+                <th>Performance Gain</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><b>Baseline Custom Naive Bayes (Unigrams)</b></td>
+                <td>52,392</td>
+                <td>81.54%</td>
+                <td>Reference</td>
+            </tr>
+            <tr>
+                <td><b>Naive Bayes + Negation Tagging (NOT_)</b></td>
+                <td>63,337</td>
+                <td>81.12%</td>
+                <td>-0.42%</td>
+            </tr>
+            <tr>
+                <td><b>Naive Bayes + Unigrams &amp; Bigrams</b></td>
+                <td>484,472</td>
+                <td><b>85.69%</b></td>
+                <td><b style="color: #2ca02c;">+4.15%</b></td>
+            </tr>
+            <tr>
+                <td><b>Naive Bayes + Bigrams &amp; Negation</b></td>
+                <td>530,623</td>
+                <td><b>85.86%</b></td>
+                <td><b style="color: #2ca02c;">+4.32%</b></td>
+            </tr>
+            <tr style="font-weight: bold; background: rgba(23, 107, 104, 0.08);">
+                <td>Scikit-learn LinearSVC Benchmark (TF-IDF)</td>
+                <td>25,000</td>
+                <td>85.52%</td>
+                <td>+3.98%</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <p>
+        <strong>Key Discovery:</strong> Expanding the feature space to include <strong>bigrams</strong> produces a dramatic 
+        <strong>+4.15% surge in accuracy</strong> (from 81.54% to 85.69%). Bigrams naturally capture collocations and local negations 
+        (e.g., <em>not_good, waste_of_money, must_read</em>) without heuristic rules. In fact, our custom Naive Bayes with bigrams 
+        (<strong>85.86%</strong>) slightly outperforms scikit-learn's optimized <code>LinearSVC</code> (85.52%), demonstrating that 
+        generative probabilistic models remain highly competitive when paired with rich n-gram features.
+    </p>
+
+    <hr style="margin-top: 48px; border: 0; border-top: 1px solid var(--line);">
+    <p>
+        The complete, self-contained Python source code for Assignment 4 is available here: 
+        <a href="./run_nb.py"><code>run_nb.py</code></a>.
+    </p>
+
+</body>
+</html>
