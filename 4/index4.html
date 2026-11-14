@@ -141,6 +141,26 @@
     <pre><code>from collections import Counter
 import math
 
+def read_documents(doc_file, return_categories=False):
+    """
+    Reads the sentiment dataset.
+    Line format: &lt;category&gt; &lt;sentiment&gt; &lt;doc_id&gt; &lt;word1&gt; &lt;word2&gt; ...
+    Returns (docs, labels) matching the assignment PDF specification.
+    If return_categories=True, returns (docs, labels, categories).
+    """
+    docs, labels, categories = [], [], []
+    with open(doc_file, "r", encoding="utf-8") as f:
+        for line in f:
+            words = line.strip().split()
+            if len(words) &lt; 3:
+                continue
+            categories.append(words[0])
+            labels.append(words[1])
+            docs.append(words[3:])
+    if return_categories:
+        return docs, labels, categories
+    return docs, labels
+
 def train_nb(documents, labels, alpha=1.0):
     num_docs = len(documents)
     class_counts = Counter(labels)
@@ -184,7 +204,7 @@ def classify_nb(document, model):
     best_score = -float("inf")
     for c in model["classes"]:
         score = score_doc_label(document, c, model)
-        if score > best_score:
+        if score &gt; best_score:
             best_score = score
             best_class = c
     return best_class</code></pre>
@@ -248,6 +268,10 @@ def classify_nb(document, model):
         <h3 style="margin-top: 0; color: var(--accent);">Final Test Accuracy</h3>
         <p style="font-size: 1.8rem; font-weight: bold; margin: 8px 0; color: var(--accent);">
             81.54% <span style="font-size: 1.0rem; font-weight: normal; color: var(--muted);">(1,943 / 2,383 reviews correctly classified)</span>
+        </p>
+        <p style="margin: 8px 0 0; color: var(--text);">
+            <strong>Standard Error:</strong> \(SE = \sqrt{\frac{p(1-p)}{N}} = 0.795\%\) &nbsp;|&nbsp; 
+            <strong>95% Confidence Interval:</strong> \([79.98\%, 83.09\%]\) (\(81.54\% \pm 1.56\%\))
         </p>
     </div>
 
@@ -516,6 +540,21 @@ def classify_nb(document, model):
             </tr>
         </tbody>
     </table>
+
+    <h3>Statistical Significance (McNemar's Test)</h3>
+    <p>
+        To determine whether the <strong>+4.15%</strong> improvement from bigrams is statistically significant over the unigram baseline rather than random sample variation, 
+        we performed <strong>McNemar's test with continuity correction</strong> on the discordant test predictions:
+    </p>
+    <ul>
+        <li><strong>Discordant Case \(b\) (Baseline Correct, Bigrams Incorrect):</strong> 43 reviews</li>
+        <li><strong>Discordant Case \(c\) (Baseline Incorrect, Bigrams Correct):</strong> 142 reviews</li>
+        <li><strong>Test Statistic:</strong> \(\chi^2 = \frac{(|b - c| - 1)^2}{b + c} = \frac{(|43 - 142| - 1)^2}{43 + 142} = \mathbf{51.91}\)</li>
+        <li><strong>\(p\)-value:</strong> \(p = \mathbf{5.80 \times 10^{-13}} \ll 0.001\)</li>
+    </ul>
+    <p>
+        The vanishingly small \(p\)-value confirms that incorporating bigrams provides a statistically significant improvement at the \(\alpha = 0.001\) level.
+    </p>
 
     <p>
         <strong>Key Discovery:</strong> Expanding the feature space to include <strong>bigrams</strong> produces a dramatic 

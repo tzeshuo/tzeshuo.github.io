@@ -47,11 +47,12 @@ MEDIA_DIR.mkdir(parents=True, exist_ok=True)
 # ==============================================================================
 # 1. Reading & Splitting Data
 # ==============================================================================
-def read_documents(doc_file):
+def read_documents(doc_file, return_categories=False):
     """
     Reads the sentiment dataset.
     Line format: <category> <sentiment> <doc_id> <word1> <word2> ...
-    Returns docs, labels, and categories.
+    Returns (docs, labels) matching the assignment PDF specification.
+    If return_categories=True, returns (docs, labels, categories).
     """
     docs = []
     labels = []
@@ -64,7 +65,9 @@ def read_documents(doc_file):
             categories.append(words[0])
             labels.append(words[1])
             docs.append(words[3:])
-    return docs, labels, categories
+    if return_categories:
+        return docs, labels, categories
+    return docs, labels
 
 
 # ==============================================================================
@@ -325,12 +328,20 @@ def run_learning_curve(train_docs, train_labels, eval_docs, eval_labels):
 # ==============================================================================
 # 6. Optional Task 2: Most Informative Features (Log-Odds Ratio)
 # ==============================================================================
-def print_top_nb(model, k=15, alpha=10.0, min_freq=5):
+def print_top_nb(arg1, arg2=None, k=15, alpha=10.0, min_freq=5):
     """
     Finds the words most indicative of positive and negative classes.
+    Accepts print_top_nb(k, model) matching the PDF prompt, or print_top_nb(model, k).
     Uses log-odds ratio: log( P(w | pos) / P(w | neg) )
     Applies higher smoothing and frequency filter to prevent rare word noise.
     """
+    if isinstance(arg1, int):
+        k = arg1
+        model = arg2
+    else:
+        model = arg1
+        if isinstance(arg2, int):
+            k = arg2
     print("\n" + "=" * 70)
     print(f"Optional Task 2: Top {k} Most Informative Features")
     print("=" * 70)
@@ -529,6 +540,7 @@ def run_feature_improvements(train_docs, train_labels, eval_docs, eval_labels):
     ]
 
     results = {}
+    all_preds = {}
     for name, use_bi, use_neg in experiments:
         proc_train = [extract_improved_features(doc, use_bigrams=use_bi, use_negation=use_neg) for doc in train_docs]
         proc_eval = [extract_improved_features(doc, use_bigrams=use_bi, use_negation=use_neg) for doc in eval_docs]
@@ -537,7 +549,23 @@ def run_feature_improvements(train_docs, train_labels, eval_docs, eval_labels):
         preds = classify_documents(proc_eval, model)
         acc = accuracy(eval_labels, preds)
         results[name] = acc
+        all_preds[name] = preds
         print(f"  {name:<32}: {acc * 100:.2f}% (Vocab: {model['vocab_size']:,} features)")
+
+    # McNemar's test: Baseline vs Unigrams + Bigrams
+    base_correct = [p == t for p, t in zip(all_preds["Baseline (Unigrams)"], eval_labels)]
+    bigram_correct = [p == t for p, t in zip(all_preds["Unigrams + Bigrams"], eval_labels)]
+    b = sum(1 for bc, bg in zip(base_correct, bigram_correct) if bc and not bg)
+    c = sum(1 for bc, bg in zip(base_correct, bigram_correct) if not bc and bg)
+    chi2_stat = ((abs(b - c) - 1) ** 2) / (b + c) if (b + c) > 0 else 0.0
+    from scipy.stats import chi2
+    p_value = float(chi2.sf(chi2_stat, df=1)) if (b + c) > 0 else 1.0
+    print(f"\n  McNemar's Statistical Significance Test (Baseline vs Unigrams + Bigrams):")
+    print(f"    Baseline correct, Bigrams wrong (b) = {b}")
+    print(f"    Baseline wrong, Bigrams correct (c) = {c}")
+    print(f"    chi2 = {chi2_stat:.4f}, p-value = {p_value:.3e}")
+    if p_value < 0.05:
+        print("    Result: Statistically significant improvement (p < 0.05).")
 
     # Plot feature comparison
     fig, ax = plt.subplots(figsize=(9, 4.8))
@@ -606,7 +634,7 @@ def main():
 
     # 1. Load data
     print(f"Loading review data from: {DATA_FILE}")
-    all_docs, all_labels, all_categories = read_documents(DATA_FILE)
+    all_docs, all_labels, all_categories = read_documents(DATA_FILE, return_categories=True)
     n_total = len(all_docs)
     print(f"Total documents loaded: {n_total:,}")
     print(f"Class distribution: {Counter(all_labels)}")
@@ -637,7 +665,14 @@ def main():
     print("=" * 70)
     predictions = classify_documents(eval_docs, model)
     test_acc = accuracy(eval_labels, predictions)
-    print(f"Final Test Accuracy: {test_acc * 100:.2f}% ({sum(1 for t, g in zip(eval_labels, predictions) if t == g)} / {len(eval_labels)} correct)")
+    n_eval = len(eval_labels)
+    n_correct = sum(1 for t, g in zip(eval_labels, predictions) if t == g)
+    se = np.sqrt(test_acc * (1.0 - test_acc) / n_eval)
+    ci_lower = (test_acc - 1.96 * se) * 100
+    ci_upper = (test_acc + 1.96 * se) * 100
+    print(f"Final Test Accuracy: {test_acc * 100:.2f}% ({n_correct} / {n_eval} correct)")
+    print(f"Standard Error (SE): {se * 100:.3f}%")
+    print(f"95% Confidence Interval: [{ci_lower:.2f}%, {ci_upper:.2f}%]")
 
     # 6. Error analysis
     false_positives, false_negatives = run_error_analysis(eval_docs, eval_labels, predictions, model)
