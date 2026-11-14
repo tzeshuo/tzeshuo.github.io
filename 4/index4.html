@@ -258,7 +258,7 @@ def classify_nb(document, model):
     <p>
         The phrase <code>['a', 'top-quality', 'performance']</code> was passed to <code>score_doc_label</code>. 
         Because our smoothing handles out-of-vocabulary terms gracefully, the function executed without crashing, 
-        yielding $\log P(\text{pos}) = -26.3663$ and $\log P(\text{neg}) = -27.0375$, correctly predicting <strong>pos</strong>.
+        yielding $\log P(\text{pos}, \mathbf{d}) = -26.3663$ and $\log P(\text{neg}, \mathbf{d}) = -27.0375$, correctly predicting <strong>pos</strong>.
     </p>
 
     <!-- ===================================================================== -->
@@ -272,10 +272,6 @@ def classify_nb(document, model):
         <h3 style="margin-top: 0; color: var(--accent);">Final Test Accuracy</h3>
         <p style="font-size: 1.8rem; font-weight: bold; margin: 8px 0; color: var(--accent);">
             81.54% <span style="font-size: 1.0rem; font-weight: normal; color: var(--muted);">(1,943 / 2,383 reviews correctly classified)</span>
-        </p>
-        <p style="margin: 8px 0 0; color: var(--text);">
-            <strong>Standard Error:</strong> \(SE = \sqrt{\frac{p(1-p)}{N}} = 0.795\%\) &nbsp;|&nbsp; 
-            <strong>95% Confidence Interval:</strong> \([79.98\%, 83.09\%]\) (\(81.54\% \pm 1.56\%\))
         </p>
     </div>
 
@@ -336,7 +332,7 @@ def classify_nb(document, model):
     </blockquote>
     <p>
         Here, the reviewer expressed high praise by stating they <em>&ldquo;did not want to put it down&rdquo;</em>. However, the classifier penalized 
-        the phrase heavily due to the negative tokens <em>not</em> and <em>put down</em>, completely missing the intended positive sentiment.
+        the phrase heavily due to the negative tokens <em>not</em> and <em>put down</em>, failing to capture the intended positive sentiment of the phrase.
     </p>
 
     <h3>2. Sarcasm and Thwarted Expectations</h3>
@@ -401,7 +397,7 @@ def classify_nb(document, model):
     <p>
         <strong>Observation:</strong> Accuracy rises steeply from 71.93% at 5% data to ~79.40% at 40% data, after which performance gains 
         gradually plateau. This indicates that while vocabulary coverage increases with more data (reaching 52,392 words), 
-        the simple unigram bag-of-words model reaches an asymptotic limit around ~81.5% due to its inability to capture context and grammar.
+        the simple unigram bag-of-words model shows diminishing returns, with accuracy leveling off around 81–82% on this dataset due to its inability to capture context and grammar.
     </p>
 
     <!-- ===================================================================== -->
@@ -456,8 +452,8 @@ def classify_nb(document, model):
     <p>
         <strong>Linguistic Insights:</strong> Negative sentiment is dominated by universally applicable critical terms 
         (<em>waste, horrible, refund, warranty, worst, repair</em>), reflecting customer dissatisfaction and return processes. 
-        Positive sentiment features classic praise words (<em>excellent, amazing, favorites</em>) alongside beloved franchises and tools 
-        (<em>pluto, illustrator, keaton, buffy</em>).
+        Positive indicators include conventional praise terms such as <em>excellent</em>, <em>amazing</em>, and <em>favorites</em>, 
+        as well as domain-specific names and entities such as <em>pluto</em>, <em>illustrator</em>, <em>keaton</em>, and <em>buffy</em>.
     </p>
 
     <!-- ===================================================================== -->
@@ -488,7 +484,7 @@ def classify_nb(document, model):
     </ul>
     <p>
         <strong>Why does this drop occur?</strong> Camera reviews utilize technical hardware vocabulary (<em>megapixels, lens, battery, autofocus, sensor</em>). 
-        When applied to books, these features are completely absent, forcing the model to rely only on general sentiment words. 
+        When applied to books, many of these domain-specific features are largely absent or much less relevant, forcing the model to rely only on general sentiment words. 
         Worse, terms like <em>durable</em> or <em>portable</em> carry no relevance in book evaluations, demonstrating the necessity of domain adaptation techniques.
     </p>
 
@@ -563,7 +559,7 @@ def classify_nb(document, model):
         <li><strong>\(p\)-value:</strong> \(p = \mathbf{5.80 \times 10^{-13}} \ll 0.001\)</li>
     </ul>
     <p>
-        The vanishingly small \(p\)-value confirms that incorporating bigrams provides a statistically significant improvement at the \(\alpha = 0.001\) level.
+        The result is statistically significant at the \(\alpha = 0.001\) level, confirming that incorporating bigram features yields a genuine performance improvement over the unigram baseline.
     </p>
 
     <p>
@@ -576,7 +572,7 @@ def classify_nb(document, model):
 
     <hr style="margin-top: 48px; border: 0; border-top: 1px solid var(--line);">
     <p>
-        The complete, self-contained Python source code for Assignment 4 is available here: 
+        The complete Python source code for Assignment 4 is available here: 
         <a href="./run_nb.py"><code>run_nb.py</code></a>.
     </p>
 

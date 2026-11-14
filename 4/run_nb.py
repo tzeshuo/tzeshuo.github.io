@@ -213,7 +213,7 @@ def run_sanity_checks(model):
         log_neg_rare = score_doc_label(doc_rare, "neg", model)
         guess_rare = classify_nb(doc_rare, model)
         print(f"\nDocument {doc_rare}:")
-        print(f"  log P(pos) = {log_pos_rare:.4f}, log P(neg) = {log_neg_rare:.4f}")
+        print(f"  log P(pos, d) = {log_pos_rare:.4f}, log P(neg, d) = {log_neg_rare:.4f}")
         print(f"  Guessed label = {guess_rare}")
         print("  => PASS: score_doc_label executed successfully without crashing.")
     except Exception as e:
@@ -668,12 +668,7 @@ def main():
     test_acc = accuracy(eval_labels, predictions)
     n_eval = len(eval_labels)
     n_correct = sum(1 for t, g in zip(eval_labels, predictions) if t == g)
-    se = np.sqrt(test_acc * (1.0 - test_acc) / n_eval)
-    ci_lower = (test_acc - 1.96 * se) * 100
-    ci_upper = (test_acc + 1.96 * se) * 100
-    print(f"Final Test Accuracy: {test_acc * 100:.2f}% ({n_correct} / {n_eval} correct)")
-    print(f"Standard Error (SE): {se * 100:.3f}%")
-    print(f"95% Confidence Interval: [{ci_lower:.2f}%, {ci_upper:.2f}%]")
+    print(f"Final Test Accuracy: {test_acc * 100:.2f}% ({n_correct} / {len(eval_labels)} correct)")
 
     # 6. Error analysis
     false_positives, false_negatives = run_error_analysis(eval_docs, eval_labels, predictions, model)
