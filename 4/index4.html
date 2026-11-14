@@ -75,22 +75,26 @@
         $$\hat{c} = \arg\max_{c \in \{\text{pos}, \text{neg}\}} \left[ \log P(c, \mathbf{d}) \right]$$
     </div>
 
-    <h3>Laplace (Add-$\alpha$) Smoothing</h3>
+    <h3>Laplace (Add-$\alpha$) Smoothing &amp; OOV Regularization</h3>
     <p>
         If a word in the test set was never encountered in class $c$ during training, its empirical frequency is zero ($\text{count}(w, c) = 0$). 
         Without smoothing, $P(w \mid c) = 0$, causing $\log P(w \mid c) = -\infty$ and completely eliminating class $c$ from consideration regardless of all other words. 
-        To resolve this zero-frequency problem, we apply <strong>Laplace / Add-$\alpha$ smoothing</strong>:
+        To resolve this zero-frequency problem, we apply <strong>Laplace / Add-$\alpha$ smoothing</strong> with an explicit out-of-vocabulary ($\text{UNK}$) reserve bucket:
     </p>
     <div class="equation-box">
-        $$P(w \mid c) = \frac{\text{count}(w, c) + \alpha}{\sum_{w' \in V} \text{count}(w', c) + \alpha \cdot |V|}$$
+        $$P(w \mid c) = \frac{\text{count}(w, c) + \alpha}{\sum_{w' \in V} \text{count}(w', c) + \alpha \cdot (|V| + 1)}$$
     </div>
     <p>
-        where $|V|$ is the total number of unique words across the training vocabulary. For any novel out-of-vocabulary word not present in $V$, 
-        the smoothed likelihood defaults cleanly to:
+        where $|V|$ is the total number of unique words across the training vocabulary, and the $+1$ term accounts for the probability mass allocated to novel unseen words ($\text{UNK}$). 
+        For any novel out-of-vocabulary word not present in $V$, the smoothed likelihood defaults cleanly to:
     </p>
     <div class="equation-box">
-        $$P(\text{UNK} \mid c) = \frac{\alpha}{\sum_{w' \in V} \text{count}(w', c) + \alpha \cdot |V|}$$
+        $$P(\text{UNK} \mid c) = \frac{\alpha}{\sum_{w' \in V} \text{count}(w', c) + \alpha \cdot (|V| + 1)}$$
     </div>
+    <p>
+        This guarantees that $\sum_{w \in V \cup \{\text{UNK}\}} P(w \mid c) = 1$, yielding a mathematically closed probability distribution. 
+        All classification decisions are performed strictly in log-space to eliminate numerical underflow, exponentiating back to joint probabilities only for single-word verification.
+    </p>
 
     <!-- ===================================================================== -->
     <!-- PIPELINE IMPLEMENTATION -->
@@ -177,7 +181,7 @@ def train_nb(documents, labels, alpha=1.0):
         vocab.update(doc)
 
     vocab_size = len(vocab)
-    denominators = {c: total_words[c] + alpha * vocab_size for c in classes}
+    denominators = {c: total_words[c] + alpha * (vocab_size + 1) for c in classes}
 
     log_likelihoods = {c: {} for c in classes}
     for c in classes:
@@ -238,14 +242,14 @@ def classify_nb(document, model):
                 <td><b>0.001321</b> (log: -6.6292)</td>
                 <td>0.000528 (log: -7.5457)</td>
                 <td><b style="color: #2ca02c;">pos</b></td>
-                <td>&check; PASS: P(pos | 'great') &gt; P(neg | 'great')</td>
+                <td>&check; PASS: P(pos, ['great']) &gt; P(neg, ['great'])</td>
             </tr>
             <tr>
                 <td><code>['bad']</code></td>
                 <td>0.000172 (log: -8.6663)</td>
                 <td><b>0.000455</b> (log: -7.6958)</td>
                 <td><b style="color: #d62728;">neg</b></td>
-                <td>&check; PASS: P(neg | 'bad') &gt; P(pos | 'bad')</td>
+                <td>&check; PASS: P(neg, ['bad']) &gt; P(pos, ['bad'])</td>
             </tr>
         </tbody>
     </table>
@@ -317,7 +321,9 @@ def classify_nb(document, model):
     <h2>5. In-Depth Error Analysis</h2>
     <p>
         Of the 2,383 test documents, <strong>440 reviews were misclassified</strong> (193 False Positives and 247 False Negatives). 
-        A qualitative analysis of high-confidence failure cases reveals four primary mechanisms causing Naive Bayes errors:
+        Because the Naive Bayes conditional independence assumption multiplies evidence additively in log-space, the resulting joint log-score difference 
+        ($|\log P(\text{pos}, \mathbf{d}) - \log P(\text{neg}, \mathbf{d})|$) represents an uncalibrated <strong>log-score margin</strong> rather than a true calibrated posterior probability. 
+        A qualitative analysis of failure cases exhibiting the largest log-score margin in the wrong direction reveals three primary mechanisms causing Naive Bayes errors:
     </p>
 
     <h3>1. The Negation Blindspot (Bag-of-Words Limitation)</h3>
@@ -372,12 +378,16 @@ def classify_nb(document, model):
             </tr>
         </thead>
         <tbody>
-            <tr><td>5%</td><td>476</td><td>10,480</td><td>71.93%</td></tr>
-            <tr><td>10%</td><td>953</td><td>16,112</td><td>75.49%</td></tr>
-            <tr><td>20%</td><td>1,906</td><td>23,892</td><td>78.14%</td></tr>
-            <tr><td>40%</td><td>3,812</td><td>33,745</td><td>79.40%</td></tr>
-            <tr><td>60%</td><td>5,718</td><td>41,208</td><td>80.70%</td></tr>
-            <tr><td>80%</td><td>7,624</td><td>47,215</td><td>81.20%</td></tr>
+            <tr><td>5%</td><td>476</td><td>9,263</td><td>71.93%</td></tr>
+            <tr><td>10%</td><td>953</td><td>14,565</td><td>75.49%</td></tr>
+            <tr><td>20%</td><td>1,906</td><td>21,532</td><td>78.14%</td></tr>
+            <tr><td>30%</td><td>2,859</td><td>27,249</td><td>79.14%</td></tr>
+            <tr><td>40%</td><td>3,812</td><td>31,464</td><td>79.40%</td></tr>
+            <tr><td>50%</td><td>4,765</td><td>35,346</td><td>79.65%</td></tr>
+            <tr><td>60%</td><td>5,718</td><td>39,141</td><td>80.70%</td></tr>
+            <tr><td>70%</td><td>6,671</td><td>42,573</td><td>81.03%</td></tr>
+            <tr><td>80%</td><td>7,624</td><td>46,223</td><td>81.20%</td></tr>
+            <tr><td>90%</td><td>8,577</td><td>49,432</td><td>81.75%</td></tr>
             <tr style="font-weight: bold; background: rgba(23, 107, 104, 0.08);">
                 <td>100%</td><td>9,531</td><td>52,392</td><td>81.54%</td></tr>
         </tbody>

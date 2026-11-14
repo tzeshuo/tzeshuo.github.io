@@ -97,11 +97,12 @@ def train_nb(documents, labels, alpha=1.0):
 
     vocab_size = len(vocab)
 
-    # Denominators for add-alpha smoothing: sum_w count(w, c) + alpha * |V|
-    denominators = {c: total_words[c] + alpha * vocab_size for c in classes}
+    # Denominators for add-alpha smoothing: sum_w count(w, c) + alpha * (|V| + 1)
+    # Including +1 accounts for the UNK (unseen word) probability mass, ensuring sum_{w in V U {UNK}} P(w | c) = 1
+    denominators = {c: total_words[c] + alpha * (vocab_size + 1) for c in classes}
 
     # Precompute log-likelihoods for seen words: log P(w | c)
-    # log P(w | c) = log( (count(w, c) + alpha) / (total_words[c] + alpha * |V|) )
+    # log P(w | c) = log( (count(w, c) + alpha) / (total_words[c] + alpha * (|V| + 1)) )
     log_likelihoods = {c: {} for c in classes}
     for c in classes:
         denom = denominators[c]
@@ -190,7 +191,7 @@ def run_sanity_checks(model):
     print(f"  P(pos, ['great']) = {prob_pos_great:.6f} (log = {log_pos_great:.4f})")
     print(f"  P(neg, ['great']) = {prob_neg_great:.6f} (log = {log_neg_great:.4f})")
     assert prob_pos_great > prob_neg_great, "Sanity check failed: 'great' should be more positive than negative!"
-    print("  => PASS: P(pos | 'great') > P(neg | 'great')")
+    print("  => PASS: P(pos, ['great']) > P(neg, ['great'])")
 
     # Test word 'bad'
     doc_bad = ["bad"]
@@ -203,7 +204,7 @@ def run_sanity_checks(model):
     print(f"  P(pos, ['bad']) = {prob_pos_bad:.6f} (log = {log_pos_bad:.4f})")
     print(f"  P(neg, ['bad']) = {prob_neg_bad:.6f} (log = {log_neg_bad:.4f})")
     assert prob_neg_bad > prob_pos_bad, "Sanity check failed: 'bad' should be more negative than positive!"
-    print("  => PASS: P(neg | 'bad') > P(pos | 'bad')")
+    print("  => PASS: P(neg, ['bad']) > P(pos, ['bad'])")
 
     # Sanity check 2: unseen / rare words phrase
     doc_rare = ["a", "top-quality", "performance"]
@@ -251,7 +252,7 @@ def run_error_analysis(eval_docs, eval_labels, predictions, model, num_examples=
             elif true_label == "pos" and pred_label == "neg":
                 false_negatives.append(item)
 
-    # Sort by how confident the model was in the wrong answer (largest score difference)
+    # Sort by largest log-score margin in the wrong direction
     false_positives.sort(key=lambda x: x["diff"], reverse=True)
     false_negatives.sort(key=lambda x: x["diff"], reverse=True)
 
@@ -259,13 +260,13 @@ def run_error_analysis(eval_docs, eval_labels, predictions, model, num_examples=
     print(f"  False Positives (True Neg, Predicted Pos): {len(false_positives)}")
     print(f"  False Negatives (True Pos, Predicted Neg): {len(false_negatives)}")
 
-    print("\nTop False Positives (Expected NEG, Predicted POS):")
+    print("\nTop False Positives (Expected NEG, Predicted POS - Largest Log-Score Margin):")
     for i, ex in enumerate(false_positives[:num_examples]):
         print(f"  [{i+1}] (Length: {ex['length']} words | diff: {ex['diff']:.2f}):")
         snippet = ex["text"][:140] + ("..." if len(ex["text"]) > 140 else "")
         print(f"      \"{snippet}\"")
 
-    print("\nTop False Negatives (Expected POS, Predicted NEG):")
+    print("\nTop False Negatives (Expected POS, Predicted NEG - Largest Log-Score Margin):")
     for i, ex in enumerate(false_negatives[:num_examples]):
         print(f"  [{i+1}] (Length: {ex['length']} words | diff: {ex['diff']:.2f}):")
         snippet = ex["text"][:140] + ("..." if len(ex["text"]) > 140 else "")
