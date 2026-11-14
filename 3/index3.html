@@ -5,6 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SYDE 572 - Assignment 3</title>
     <link rel="stylesheet" href="../style.css">
+    <!-- MathJax for high-quality mathematical rendering -->
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            },
+            svg: {
+                fontCache: 'global'
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </head>
 <body>
 
@@ -23,18 +36,18 @@
         <thead>
             <tr>
                 <th>Sample</th>
-                <th><i>x</i><sub>1</sub></th>
-                <th><i>x</i><sub>2</sub></th>
-                <th>Centered <i>x&#771;</i><sub>1</sub></th>
-                <th>Centered <i>x&#771;</i><sub>2</sub></th>
+                <th>$x_1$</th>
+                <th>$x_2$</th>
+                <th>Centered $\tilde{x}_1$</th>
+                <th>Centered $\tilde{x}_2$</th>
             </tr>
         </thead>
         <tbody>
-            <tr><td><b>x</b><sup>(1)</sup></td><td>-2</td><td>-1</td><td>-2</td><td>-2</td></tr>
-            <tr><td><b>x</b><sup>(2)</sup></td><td>-1</td><td>0</td><td>-1</td><td>-1</td></tr>
-            <tr><td><b>x</b><sup>(3)</sup></td><td>0</td><td>1</td><td>0</td><td>0</td></tr>
-            <tr><td><b>x</b><sup>(4)</sup></td><td>1</td><td>2</td><td>1</td><td>1</td></tr>
-            <tr><td><b>x</b><sup>(5)</sup></td><td>2</td><td>3</td><td>2</td><td>2</td></tr>
+            <tr><td>$\mathbf{x}^{(1)}$</td><td>-2</td><td>-1</td><td>-2</td><td>-2</td></tr>
+            <tr><td>$\mathbf{x}^{(2)}$</td><td>-1</td><td>0</td><td>-1</td><td>-1</td></tr>
+            <tr><td>$\mathbf{x}^{(3)}$</td><td>0</td><td>1</td><td>0</td><td>0</td></tr>
+            <tr><td>$\mathbf{x}^{(4)}$</td><td>1</td><td>2</td><td>1</td><td>1</td></tr>
+            <tr><td>$\mathbf{x}^{(5)}$</td><td>2</td><td>3</td><td>2</td><td>2</td></tr>
         </tbody>
     </table>
 
@@ -71,59 +84,67 @@
         <li>
             <strong>Mean Centering:</strong>
             The sample mean vector is:
-            <br>
-            &mu;<sub>1</sub> = (-2 + -1 + 0 + 1 + 2) / 5 = <b>0</b><br>
-            &mu;<sub>2</sub> = (-1 + 0 + 1 + 2 + 3) / 5 = <b>1</b> &implies; 
-            <b>&mu;</b> = [0, 1]<sup>T</sup>.
-            <br>
-            Subtracting <b>&mu;</b> yields centered data <i>x&#771;</i><sup>(<i>i</i>)</sup> = <i>x</i><sup>(<i>i</i>)</sup> &minus; <b>&mu;</b>. 
-            Notice that for all points, <i>x&#771;</i><sub>2</sub> = <i>x&#771;</i><sub>1</sub>, meaning all 5 centered points lie exactly on the line of slope 1 through the origin.
+            <div class="equation-box">
+                $$\mu_1 = \frac{-2 - 1 + 0 + 1 + 2}{5} = 0, \quad \mu_2 = \frac{-1 + 0 + 1 + 2 + 3}{5} = 1 \implies \mathbf{\mu} = \begin{bmatrix} 0 \\ 1 \end{bmatrix}$$
+            </div>
+            Subtracting $\mathbf{\mu}$ yields centered data $\tilde{\mathbf{x}}^{(i)} = \mathbf{x}^{(i)} - \mathbf{\mu}$. 
+            Notice that for all points, $\tilde{x}_2 = \tilde{x}_1$, meaning all 5 centered points lie exactly on the line of slope 1 through the origin.
         </li>
         <li style="margin-top: 14px;">
             <strong>Scatter &amp; Covariance Matrices:</strong>
-            The scatter matrix <b>S</b> = <b>X&#771;</b><sup>T</sup><b>X&#771;</b> is:
-            <br>
-            <b>S</b> = &sum; <i>x&#771;</i><sup>(<i>i</i>)</sup> (<i>x&#771;</i><sup>(<i>i</i>)</sup>)<sup>T</sup> = 
-            <span style="display: inline-block; vertical-align: middle; border-left: 2px solid; border-right: 2px solid; border-radius: 4px; padding: 0 5px; font-family: monospace; font-size: 0.95em; line-height: 1.25;">&nbsp;10&nbsp;&nbsp;&nbsp;10<br>&nbsp;10&nbsp;&nbsp;&nbsp;10&nbsp;</span>.
-            <br>
-            The sample covariance matrix (unbiased, <i>N</i> &minus; 1 = 4) is 
-            <b>&Sigma;</b> = <b>S</b> / 4 = 
-            <span style="display: inline-block; vertical-align: middle; border-left: 2px solid; border-right: 2px solid; border-radius: 4px; padding: 0 5px; font-family: monospace; font-size: 0.95em; line-height: 1.25;">&nbsp;2.5&nbsp;&nbsp;&nbsp;2.5<br>&nbsp;2.5&nbsp;&nbsp;&nbsp;2.5&nbsp;</span>.
+            The scatter matrix $\mathbf{S} = \mathbf{X}_c^T \mathbf{X}_c$ is:
+            <div class="equation-box">
+                $$\mathbf{S} = \sum_{i=1}^5 \tilde{\mathbf{x}}^{(i)} (\tilde{\mathbf{x}}^{(i)})^T = \begin{bmatrix} 10 & 10 \\ 10 & 10 \end{bmatrix}$$
+            </div>
+            The sample covariance matrix (unbiased, $N - 1 = 4$) is:
+            <div class="equation-box">
+                $$\mathbf{\Sigma} = \frac{\mathbf{S}}{N - 1} = \frac{\mathbf{S}}{4} = \begin{bmatrix} 2.5 & 2.5 \\ 2.5 & 2.5 \end{bmatrix}$$
+            </div>
         </li>
         <li style="margin-top: 14px;">
             <strong>Question 1 &mdash; What is the first principal component?</strong>
             <br>
-            The characteristic equation is det(<b>S</b> &minus; &lambda;<b>I</b>) = (10 &minus; &lambda;)<sup>2</sup> &minus; 100 = &lambda;<sup>2</sup> &minus; 20&lambda; = 0, giving eigenvalues &lambda;<sub>1</sub> = 20 and &lambda;<sub>2</sub> = 0.
+            The characteristic equation is:
+            <div class="equation-box">
+                $$\det(\mathbf{S} - \lambda \mathbf{I}) = (10 - \lambda)^2 - 100 = \lambda^2 - 20\lambda = 0 \implies \lambda_1 = 20, \quad \lambda_2 = 0$$
+            </div>
+            Solving $(\mathbf{S} - 20\mathbf{I})\mathbf{w}_1 = \mathbf{0}$ yields $-10w_{11} + 10w_{12} = 0 \implies w_{11} = w_{12}$.
             <br>
-            Solving (<b>S</b> &minus; 20<b>I</b>)<b>w</b><sub>1</sub> = <b>0</b> yields &minus;10<i>w</i><sub>11</sub> + 10<i>w</i><sub>12</sub> = 0 &implies; <i>w</i><sub>11</sub> = <i>w</i><sub>12</sub>.
-            <br>
-            Normalizing to unit length (||<b>w</b><sub>1</sub>|| = 1):
-            <br>
-            <b>w<sub>1</sub> = [ 1/&radic;2, 1/&radic;2 ]<sup>T</sup> &approx; [ 0.707107, 0.707107 ]<sup>T</sup></b>.
+            Normalizing to unit length ($\|\mathbf{w}_1\| = 1$):
+            <div class="equation-box">
+                $$\mathbf{w}_1 = \begin{bmatrix} \frac{1}{\sqrt{2}} \\ \frac{1}{\sqrt{2}} \end{bmatrix} \approx \begin{bmatrix} 0.707107 \\ 0.707107 \end{bmatrix}$$
+            </div>
         </li>
         <li style="margin-top: 14px;">
-            <strong>Question 2 &mdash; What is the (L2-norm) reconstruction error of the point (3, 3)?</strong>
+            <strong>Question 2 &mdash; What is the ($L_2$-norm) reconstruction error of the point (3, 3)?</strong>
             <br>
-            1. Center the point: <b>x&#771;</b> = [3, 3]<sup>T</sup> &minus; [0, 1]<sup>T</sup> = [3, 2]<sup>T</sup>.<br>
-            2. Compute scalar projection onto <b>w</b><sub>1</sub>: 
-            <i>z</i><sub>1</sub> = <b>w</b><sub>1</sub><sup>T</sup> <b>x&#771;</b> = (3 + 2) / &radic;2 = <b>5 / &radic;2 &approx; 3.535534</b>.<br>
-            3. Compute reconstructed centered point: <b>x&#770;&#771;</b> = <i>z</i><sub>1</sub> <b>w</b><sub>1</sub> = (5/&radic;2) [1/&radic;2, 1/&radic;2]<sup>T</sup> = [2.5, 2.5]<sup>T</sup>.<br>
-            4. Shift back by mean <b>&mu;</b>: <b>x&#770;</b> = [2.5, 2.5]<sup>T</sup> + [0, 1]<sup>T</sup> = <b>[2.5, 3.5]<sup>T</sup></b>.<br>
-            5. Reconstruction error vector: <b>e</b> = <b>x</b> &minus; <b>x&#770;</b> = [3 &minus; 2.5, 3 &minus; 3.5]<sup>T</sup> = <b>[0.5, &minus;0.5]<sup>T</sup></b>.<br>
-            6. L2-norm of reconstruction error: 
-            <b>||e||<sub>2</sub> = &radic;((0.5)<sup>2</sup> + (&minus;0.5)<sup>2</sup>) = &radic;(0.25 + 0.25) = &radic;(0.5) = 1 / &radic;2 &approx; 0.707107</b>.
-            <br>
-            <i>(Equivalently, this is the absolute projection along the orthogonal component <b>w</b><sub>2</sub> = [&minus;1/&radic;2, 1/&radic;2]<sup>T</sup>: |<b>w</b><sub>2</sub><sup>T</sup><b>x&#771;</b>| = |&minus;3/&radic;2 + 2/&radic;2| = 1/&radic;2 &approx; 0.707107).</i>
+            1. Center the point: $\tilde{\mathbf{x}} = \begin{bmatrix} 3 \\ 3 \end{bmatrix} - \begin{bmatrix} 0 \\ 1 \end{bmatrix} = \begin{bmatrix} 3 \\ 2 \end{bmatrix}$.<br>
+            2. Compute scalar projection onto $\mathbf{w}_1$: 
+            $$z_1 = \mathbf{w}_1^T \tilde{\mathbf{x}} = \frac{3 + 2}{\sqrt{2}} = \frac{5}{\sqrt{2}} \approx 3.535534$$
+            3. Compute reconstructed centered point:
+            $$\hat{\tilde{\mathbf{x}}} = z_1 \mathbf{w}_1 = \frac{5}{\sqrt{2}} \begin{bmatrix} \frac{1}{\sqrt{2}} \\ \frac{1}{\sqrt{2}} \end{bmatrix} = \begin{bmatrix} 2.5 \\ 2.5 \end{bmatrix}$$
+            4. Shift back by mean $\mathbf{\mu}$:
+            $$\hat{\mathbf{x}} = \hat{\tilde{\mathbf{x}}} + \mathbf{\mu} = \begin{bmatrix} 2.5 \\ 2.5 \end{bmatrix} + \begin{bmatrix} 0 \\ 1 \end{bmatrix} = \begin{bmatrix} 2.5 \\ 3.5 \end{bmatrix}$$
+            5. Reconstruction error vector:
+            $$\mathbf{e} = \mathbf{x} - \hat{\mathbf{x}} = \begin{bmatrix} 3 - 2.5 \\ 3 - 3.5 \end{bmatrix} = \begin{bmatrix} 0.5 \\ -0.5 \end{bmatrix}$$
+            6. $L_2$-norm of reconstruction error: 
+            <div class="equation-box">
+                $$\|\mathbf{e}\|_2 = \sqrt{(0.5)^2 + (-0.5)^2} = \sqrt{0.25 + 0.25} = \sqrt{0.5} = \frac{1}{\sqrt{2}} \approx 0.707107$$
+            </div>
+            <em>(Equivalently, this is the absolute projection along the orthogonal component $\mathbf{w}_2 = [-\frac{1}{\sqrt{2}}, \frac{1}{\sqrt{2}}]^T$: $|\mathbf{w}_2^T \tilde{\mathbf{x}}| = |-\frac{3}{\sqrt{2}} + \frac{2}{\sqrt{2}}| = \frac{1}{\sqrt{2}} \approx 0.707107$).</em>
         </li>
         <li style="margin-top: 14px;">
-            <strong>Question 3 &mdash; What is the (L2-norm) reconstruction error of the point (3, 4)?</strong>
+            <strong>Question 3 &mdash; What is the ($L_2$-norm) reconstruction error of the point (3, 4)?</strong>
             <br>
-            1. Center the point: <b>x&#771;</b> = [3, 4]<sup>T</sup> &minus; [0, 1]<sup>T</sup> = [3, 3]<sup>T</sup>.<br>
-            2. Notice that <i>x&#771;</i><sub>1</sub> = <i>x&#771;</i><sub>2</sub> = 3, meaning the centered vector points exactly along the unit eigenvector <b>w</b><sub>1</sub> = [1/&radic;2, 1/&radic;2]<sup>T</sup>.<br>
-            3. Projection scalar: <i>z</i><sub>1</sub> = (3 + 3) / &radic;2 = 6 / &radic;2 = 3&radic;2.<br>
-            4. Reconstructed point: <b>x&#770;</b> = [0, 1]<sup>T</sup> + 3&radic;2 [1/&radic;2, 1/&radic;2]<sup>T</sup> = [0, 1]<sup>T</sup> + [3, 3]<sup>T</sup> = <b>[3, 4]<sup>T</sup></b>.<br>
-            5. Reconstruction error vector: <b>e</b> = [3 &minus; 3, 4 &minus; 4]<sup>T</sup> = [0, 0]<sup>T</sup>.<br>
-            6. L2-norm of reconstruction error: <b>||e||<sub>2</sub> = 0</b>.
+            1. Center the point: $\tilde{\mathbf{x}} = \begin{bmatrix} 3 \\ 4 \end{bmatrix} - \begin{bmatrix} 0 \\ 1 \end{bmatrix} = \begin{bmatrix} 3 \\ 3 \end{bmatrix}$.<br>
+            2. Notice that $\tilde{x}_1 = \tilde{x}_2 = 3$, meaning the centered vector points exactly along the unit eigenvector $\mathbf{w}_1 = [\frac{1}{\sqrt{2}}, \frac{1}{\sqrt{2}}]^T$.<br>
+            3. Projection scalar: $z_1 = \frac{3 + 3}{\sqrt{2}} = \frac{6}{\sqrt{2}} = 3\sqrt{2}$.<br>
+            4. Reconstructed point: $\hat{\mathbf{x}} = \begin{bmatrix} 0 \\ 1 \end{bmatrix} + 3\sqrt{2} \begin{bmatrix} \frac{1}{\sqrt{2}} \\ \frac{1}{\sqrt{2}} \end{bmatrix} = \begin{bmatrix} 0 \\ 1 \end{bmatrix} + \begin{bmatrix} 3 \\ 3 \end{bmatrix} = \begin{bmatrix} 3 \\ 4 \end{bmatrix}$.<br>
+            5. Reconstruction error vector: $\mathbf{e} = \begin{bmatrix} 3 - 3 \\ 4 - 4 \end{bmatrix} = \begin{bmatrix} 0 \\ 0 \end{bmatrix}$.<br>
+            6. $L_2$-norm of reconstruction error: 
+            <div class="equation-box">
+                $$\|\mathbf{e}\|_2 = 0$$
+            </div>
         </li>
     </ol>
 
@@ -403,58 +424,59 @@
     <!-- ===================================================================== -->
     <h2>Part 4 &mdash; Data Compression &amp; Frobenius Norm Connection</h2>
     <p>
-        In class, we discussed the <em>analysis view</em> of PCA: PCA finds a <i>K</i>-dimensional orthogonal projection 
+        In class, we discussed the <em>analysis view</em> of PCA: PCA finds a $K$-dimensional orthogonal projection 
         that maximizes the variance retained in the projected data. Equivalently, it minimizes the total squared 
         reconstruction error over all observations, measured by the squared Frobenius norm 
-        ||<b>X</b> &minus; <b>X&#770;</b>||<sub><i>F</i></sub><sup>2</sup>, among all rank-<i>K</i> linear orthogonal projections.
+        $\|\mathbf{X} - \hat{\mathbf{X}}\|_F^2$, among all rank-$K$ linear orthogonal projections.
     </p>
 
     <h3>Mathematical Connection: Frobenius Norm and Variance</h3>
     <p>
-        For a centered data matrix <b>X</b><sub><i>c</i></sub> of size <i>N</i> &times; <i>D</i> (where each column has zero mean), 
+        For a centered data matrix $\mathbf{X}_c$ of size $N \times D$ (where each column has zero mean), 
         the squared Frobenius norm is equal to the trace of its scatter matrix:
     </p>
-    <p style="background: var(--paper); padding: 12px 18px; border-left: 4px solid var(--accent); border-radius: 4px;">
-        ||<b>X</b><sub><i>c</i></sub>||<sub><i>F</i></sub><sup>2</sup> = Tr(<b>X</b><sub><i>c</i></sub><sup>T</sup><b>X</b><sub><i>c</i></sub>).
-    </p>
+    <div class="equation-box">
+        $$\|\mathbf{X}_c\|_F^2 = \text{Tr}(\mathbf{X}_c^T \mathbf{X}_c)$$
+    </div>
     <p>
-        Let &lambda;<sub><i>j</i></sub><sup>(<i>S</i>)</sup> denote the eigenvalues of the scatter matrix <b>S</b> = <b>X</b><sub><i>c</i></sub><sup>T</sup><b>X</b><sub><i>c</i></sub>. Then:
+        Let $\lambda_j^{(S)}$ denote the eigenvalues of the scatter matrix $\mathbf{S} = \mathbf{X}_c^T \mathbf{X}_c$. Then:
     </p>
-    <p style="background: var(--paper); padding: 12px 18px; border-left: 4px solid var(--accent); border-radius: 4px;">
-        ||<b>X</b><sub><i>c</i></sub>||<sub><i>F</i></sub><sup>2</sup> = &sum;<sub><i>j</i>=1</sub><sup><i>D</i></sup> &lambda;<sub><i>j</i></sub><sup>(<i>S</i>)</sup> = (<i>N</i> &minus; 1) &sum;<sub><i>j</i>=1</sub><sup><i>D</i></sup> Var(<b>x</b><sub><i>j</i></sub>).
-    </p>
+    <div class="equation-box">
+        $$\|\mathbf{X}_c\|_F^2 = \sum_{j=1}^D \lambda_j^{(S)} = (N - 1) \sum_{j=1}^D \text{Var}(\mathbf{x}_j)$$
+    </div>
     <p>
-        Alternatively, if &lambda;<sub><i>j</i></sub><sup>(&Sigma;)</sup> denotes the eigenvalues of the unbiased sample covariance matrix <b>&Sigma;</b> = <b>X</b><sub><i>c</i></sub><sup>T</sup><b>X</b><sub><i>c</i></sub> / (<i>N</i> &minus; 1), then:
+        Alternatively, if $\lambda_j^{(\Sigma)}$ denotes the eigenvalues of the unbiased sample covariance matrix $\mathbf{\Sigma} = \mathbf{X}_c^T \mathbf{X}_c / (N - 1)$, then:
     </p>
-    <p style="background: var(--paper); padding: 12px 18px; border-left: 4px solid var(--accent); border-radius: 4px;">
-        &lambda;<sub><i>j</i></sub><sup>(&Sigma;)</sup> = &lambda;<sub><i>j</i></sub><sup>(<i>S</i>)</sup> / (<i>N</i> &minus; 1).
-    </p>
+    <div class="equation-box">
+        $$\lambda_j^{(\Sigma)} = \frac{\lambda_j^{(S)}}{N - 1}$$
+    </div>
     <p>
         Thus, the total sample variance is the sum of the sample covariance eigenvalues:
     </p>
-    <p style="background: var(--paper); padding: 12px 18px; border-left: 4px solid var(--accent); border-radius: 4px;">
-        &sum;<sub><i>j</i>=1</sub><sup><i>D</i></sup> &lambda;<sub><i>j</i></sub><sup>(&Sigma;)</sup> = ||<b>X</b><sub><i>c</i></sub>||<sub><i>F</i></sub><sup>2</sup> / (<i>N</i> &minus; 1).
-    </p>
+    <div class="equation-box">
+        $$\sum_{j=1}^D \lambda_j^{(\Sigma)} = \frac{\|\mathbf{X}_c\|_F^2}{N - 1}$$
+    </div>
     <p>
-        When projected onto an orthonormal basis of <i>K</i> principal components <b>W</b><sub><i>K</i></sub> = [<b>w</b><sub>1</sub>, ..., <b>w</b><sub><i>K</i></sub>], 
-        the compressed low-dimensional representation is <b>Z</b><sub><i>K</i></sub> = <b>X</b><sub><i>c</i></sub><b>W</b><sub><i>K</i></sub>. 
-        Because the principal components are orthogonal, the squared Frobenius norm of <b>Z</b><sub><i>K</i></sub> equals the total scatter retained in the projected representation. Dividing by <i>N</i> &minus; 1 gives the total sample variance captured by the selected components:
+        When projected onto an orthonormal basis of $K$ principal components $\mathbf{W}_K = [\mathbf{w}_1, \dots, \mathbf{w}_K]$, 
+        the compressed low-dimensional representation is $\mathbf{Z}_K = \mathbf{X}_c \mathbf{W}_K$. 
+        Because the principal components are orthogonal, the squared Frobenius norm of $\mathbf{Z}_K$ equals the total scatter retained in the projected representation. Dividing by $N - 1$ gives the total sample variance captured by the selected components:
     </p>
-    <p style="background: var(--paper); padding: 12px 18px; border-left: 4px solid var(--accent); border-radius: 4px;">
-        ||<b>Z</b><sub><i>K</i></sub>||<sub><i>F</i></sub><sup>2</sup> = Tr(<b>Z</b><sub><i>K</i></sub><sup>T</sup><b>Z</b><sub><i>K</i></sub>) = &sum;<sub><i>k</i>=1</sub><sup><i>K</i></sup> &lambda;<sub><i>k</i></sub><sup>(<i>S</i>)</sup> = (<i>N</i> &minus; 1) &sum;<sub><i>k</i>=1</sub><sup><i>K</i></sup> &lambda;<sub><i>k</i></sub><sup>(&Sigma;)</sup>.
-    </p>
+    <div class="equation-box">
+        $$\|\mathbf{Z}_K\|_F^2 = \text{Tr}(\mathbf{Z}_K^T \mathbf{Z}_K) = \sum_{k=1}^K \lambda_k^{(S)} = (N - 1) \sum_{k=1}^K \lambda_k^{(\Sigma)}$$
+    </div>
     <p>
-        Hence, the fraction of total dataset variance explained by the <i>K</i>-dimensional representation is precisely:
-        <br>
-        <b>Explained Variance Ratio = ||Z<sub>K</sub>||<sub>F</sub><sup>2</sup> / ||X<sub>c</sub>||<sub>F</sub><sup>2</sup> = &sum;<sub>k=1</sub><sup>K</sup> &lambda;<sub>k</sub><sup>(S)</sup> / &sum;<sub>j=1</sub><sup>D</sup> &lambda;<sub>j</sub><sup>(S)</sup> = &sum;<sub>k=1</sub><sup>K</sup> &lambda;<sub>k</sub><sup>(&Sigma;)</sup> / &sum;<sub>j=1</sub><sup>D</sup> &lambda;<sub>j</sub><sup>(&Sigma;)</sup></b>.
+        Hence, the fraction of total dataset variance explained by the $K$-dimensional representation is precisely:
     </p>
+    <div class="equation-box">
+        $$\text{Explained Variance Ratio} = \frac{\|\mathbf{Z}_K\|_F^2}{\|\mathbf{X}_c\|_F^2} = \frac{\sum_{k=1}^K \lambda_k^{(S)}}{\sum_{j=1}^D \lambda_j^{(S)}} = \frac{\sum_{k=1}^K \lambda_k^{(\Sigma)}}{\sum_{j=1}^D \lambda_j^{(\Sigma)}}$$
+    </div>
     <p>
-        For the Iris dataset (<i>N</i> = 150, <i>D</i> = 4):
+        For the Iris dataset ($N = 150, D = 4$):
     </p>
     <ul>
-        <li>Centered matrix squared Frobenius norm: <b>||X<sub>c</sub>||<sub>F</sub><sup>2</sup> = 680.8244</b></li>
-        <li>Trace of scatter matrix: <b>Tr(X<sub>c</sub><sup>T</sup>X<sub>c</sub>) = &sum; &lambda;<sub>j</sub><sup>(S)</sup> = 680.8244</b></li>
-        <li>Sum of sample covariance eigenvalues: <b>&sum; &lambda;<sub>j</sub><sup>(&Sigma;)</sup> = 680.8244 / 149 = 4.569291</b></li>
+        <li>Centered matrix squared Frobenius norm: <b>$\|\mathbf{X}_c\|_F^2 = 680.8244$</b></li>
+        <li>Trace of scatter matrix: <b>$\text{Tr}(\mathbf{X}_c^T \mathbf{X}_c) = \sum \lambda_j^{(S)} = 680.8244$</b></li>
+        <li>Sum of sample covariance eigenvalues: <b>$\sum \lambda_j^{(\Sigma)} = \frac{680.8244}{149} = 4.569291$</b></li>
     </ul>
 
     <h3>Answers to Prompt Questions</h3>
@@ -464,15 +486,13 @@
             <br>
             The two-dimensional representation retains the top two principal components (PC1 and PC2):
             <ul>
-                <li>First principal component (PC1): <b>92.46%</b> of total variance (&lambda;<sub>1</sub><sup>(&Sigma;)</sup> = 4.2248)</li>
-                <li>Second principal component (PC2): <b>5.30%</b> of total variance (&lambda;<sub>2</sub><sup>(&Sigma;)</sup> = 0.2422)</li>
+                <li>First principal component (PC1): <b>92.46%</b> of total variance ($\lambda_1^{(\Sigma)} = 4.2248$)</li>
+                <li>Second principal component (PC2): <b>5.30%</b> of total variance ($\lambda_2^{(\Sigma)} = 0.2422$)</li>
             </ul>
             By the Frobenius norm connection:
-            <br>
-            <b style="font-size: 1.1em; color: var(--accent);">
-                ||Z<sub>2</sub>||<sub>F</sub><sup>2</sup> / ||X<sub>c</sub>||<sub>F</sub><sup>2</sup> = &sum;<sub>k=1</sub><sup>2</sup> &lambda;<sub>k</sub><sup>(S)</sup> / &sum;<sub>j=1</sub><sup>4</sup> &lambda;<sub>j</sub><sup>(S)</sup> &approx; 97.76%
-            </b>.
-            <br>
+            <div class="equation-box">
+                $$\frac{\|\mathbf{Z}_2\|_F^2}{\|\mathbf{X}_c\|_F^2} = \frac{\sum_{k=1}^2 \lambda_k^{(S)}}{\sum_{j=1}^4 \lambda_j^{(S)}} \approx 97.76\%$$
+            </div>
             Together, the first two principal components account for approximately <b>97.76%</b> of the total variance in the dataset.
             <br>
             <i>(Note: If features are standardized to unit variance prior to PCA, PC1 explains 72.77% and PC2 explains 23.03%, yielding <b>95.80%</b> total variance in 2D. Both approaches retain more than 95% of the total variance under their respective feature-scaling conventions. However, the primary analysis in this assignment uses the original, unstandardized features).</i>
@@ -592,8 +612,8 @@ plt.savefig(OUTPUT_DIR / "part5_isomap_k3.png", dpi=200)</code></pre>
                 <td><b>Data Compression</b></td>
                 <td>
                     <b>Analytical, linear projection &amp; decompression:</b>
-                    Provides an explicit orthogonal projection matrix <b>W</b>. Encoding is <b>z</b> = <b>W</b><sup>T</sup>(<b>x</b> &minus; <b>&mu;</b>), and decoding is <b>x&#770;</b> = <b>Wz</b> + <b>&mu;</b>. 
-                    Reconstruction error is mathematically minimized (||<b>X</b> &minus; <b>X&#770;</b>||<sub><i>F</i></sub><sup>2</sup>), retaining 97.76% of total dataset variance in 2D.
+                    Provides an explicit orthogonal projection matrix $\mathbf{W}$. Encoding is $\mathbf{z} = \mathbf{W}^T(\mathbf{x} - \mathbf{\mu})$, and decoding is $\hat{\mathbf{x}} = \mathbf{W}\mathbf{z} + \mathbf{\mu}$. 
+                    Reconstruction error is mathematically minimized ($\|\mathbf{X} - \hat{\mathbf{X}}\|_F^2$), retaining 97.76% of total dataset variance in 2D.
                 </td>
                 <td>
                     <b>Non-parametric embedding:</b>
@@ -643,7 +663,7 @@ plt.savefig(OUTPUT_DIR / "part5_isomap_k3.png", dpi=200)</code></pre>
             <tr>
                 <td><b>New Data Projection</b></td>
                 <td>
-                    Simple projection using the learned PCA axes (<b>z</b> = <b>W</b><sup>T</sup><b>x&#771;</b>).
+                    Simple projection using the learned PCA axes ($\mathbf{z} = \mathbf{W}^T \tilde{\mathbf{x}}$).
                 </td>
                 <td>
                     Uses neighbourhood relationships with the training data through <code>transform()</code>.

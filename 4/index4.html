@@ -5,6 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SYDE 572 - Assignment 4</title>
     <link rel="stylesheet" href="../style.css">
+    <!-- MathJax for high-quality mathematical rendering -->
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            },
+            svg: {
+                fontCache: 'global'
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </head>
 <body>
 
@@ -33,51 +46,51 @@
     <!-- ===================================================================== -->
     <h2>1. Mathematical Formulation of Naive Bayes</h2>
     <p>
-        Given a text document <b>d</b> represented as a sequence of words $(w_1, w_2, \dots, w_n)$ and a set of candidate classes 
+        Given a text document $\mathbf{d}$ represented as a sequence of words $(w_1, w_2, \dots, w_n)$ and a set of candidate classes 
         $C = \{\text{pos}, \text{neg}\}$, Bayes' rule expresses the posterior probability as:
     </p>
-    <p style="background: var(--paper); padding: 12px 18px; border-left: 4px solid var(--accent); border-radius: 4px; font-family: monospace;">
-        P(c | d) = [ P(c) &middot; P(d | c) ] / P(d)
-    </p>
+    <div class="equation-box">
+        $$P(c \mid \mathbf{d}) = \frac{P(c) \, P(\mathbf{d} \mid c)}{P(\mathbf{d})}$$
+    </div>
     <p>
         Under the <em>naive independence assumption</em>, the occurrence of each word is assumed to be conditionally independent 
         of all other words given the document's class label:
     </p>
-    <p style="background: var(--paper); padding: 12px 18px; border-left: 4px solid var(--accent); border-radius: 4px; font-family: monospace;">
-        P(d | c) = &prod;<sub>i=1</sub><sup>n</sup> P(w<sub>i</sub> | c)
-    </p>
+    <div class="equation-box">
+        $$P(\mathbf{d} \mid c) = \prod_{i=1}^n P(w_i \mid c)$$
+    </div>
 
     <h3>Log-Space Inference (Preventing Numerical Underflow)</h3>
     <p>
         Multiplying hundreds of small individual word probabilities results in severe floating-point underflow (evaluating to <code>0.0</code>). 
         To maintain numerical stability, all calculations are performed in <strong>log-space</strong>, transforming products into sums:
     </p>
-    <p style="background: var(--paper); padding: 12px 18px; border-left: 4px solid var(--accent); border-radius: 4px; font-family: monospace;">
-        log P(c, d) = log P(c) + &sum;<sub>i=1</sub><sup>n</sup> log P(w<sub>i</sub> | c)
-    </p>
+    <div class="equation-box">
+        $$\log P(c, \mathbf{d}) = \log P(c) + \sum_{i=1}^n \log P(w_i \mid c)$$
+    </div>
     <p>
         The predicted sentiment label $\hat{c}$ corresponds to the Maximum A Posteriori (MAP) class:
     </p>
-    <p style="background: var(--paper); padding: 12px 18px; border-left: 4px solid var(--accent); border-radius: 4px; font-family: monospace;">
-        c&#770; = argmax<sub>c &isin; {pos, neg}</sub> [ log P(c, d) ]
-    </p>
+    <div class="equation-box">
+        $$\hat{c} = \arg\max_{c \in \{\text{pos}, \text{neg}\}} \left[ \log P(c, \mathbf{d}) \right]$$
+    </div>
 
-    <h3>Laplace (Add-&alpha;) Smoothing</h3>
+    <h3>Laplace (Add-$\alpha$) Smoothing</h3>
     <p>
         If a word in the test set was never encountered in class $c$ during training, its empirical frequency is zero ($\text{count}(w, c) = 0$). 
-        Without smoothing, $P(w | c) = 0$, causing $\log P(w | c) = -\infty$ and completely eliminating class $c$ from consideration regardless of all other words. 
-        To resolve this zero-frequency problem, we apply <strong>Laplace / Add-&alpha; smoothing</strong>:
+        Without smoothing, $P(w \mid c) = 0$, causing $\log P(w \mid c) = -\infty$ and completely eliminating class $c$ from consideration regardless of all other words. 
+        To resolve this zero-frequency problem, we apply <strong>Laplace / Add-$\alpha$ smoothing</strong>:
     </p>
-    <p style="background: var(--paper); padding: 12px 18px; border-left: 4px solid var(--accent); border-radius: 4px; font-family: monospace;">
-        P(w | c) = [ count(w, c) + &alpha; ] / [ &sum;<sub>w'&isin;V</sub> count(w', c) + &alpha; &middot; |V| ]
-    </p>
+    <div class="equation-box">
+        $$P(w \mid c) = \frac{\text{count}(w, c) + \alpha}{\sum_{w' \in V} \text{count}(w', c) + \alpha \cdot |V|}$$
+    </div>
     <p>
         where $|V|$ is the total number of unique words across the training vocabulary. For any novel out-of-vocabulary word not present in $V$, 
         the smoothed likelihood defaults cleanly to:
     </p>
-    <p style="background: var(--paper); padding: 12px 18px; border-left: 4px solid var(--accent); border-radius: 4px; font-family: monospace;">
-        P(UNK | c) = &alpha; / [ &sum;<sub>w'&isin;V</sub> count(w', c) + &alpha; &middot; |V| ]
-    </p>
+    <div class="equation-box">
+        $$P(\text{UNK} \mid c) = \frac{\alpha}{\sum_{w' \in V} \text{count}(w', c) + \alpha \cdot |V|}$$
+    </div>
 
     <!-- ===================================================================== -->
     <!-- PIPELINE IMPLEMENTATION -->
@@ -187,7 +200,7 @@ def classify_nb(document, model):
     <h3>Sanity Check 1: Single-Word Sensitivity</h3>
     <p>
         Evaluating small documents of length 1 verifies that polarizing words shift probability in the expected direction, 
-        with joint probabilities matching the expected $0.001 &ndash; 0.002$ magnitude:
+        with joint probabilities matching the expected 0.001&ndash;0.002 magnitude:
     </p>
     <table>
         <thead>
@@ -364,9 +377,9 @@ def classify_nb(document, model):
     <p>
         To identify the words most strongly indicative of positive and negative reviews, we compute the <strong>log-odds ratio</strong>:
     </p>
-    <p style="background: var(--paper); padding: 12px 18px; border-left: 4px solid var(--accent); border-radius: 4px; font-family: monospace;">
-        Log-Odds(w) = log [ P(w | pos) / P(w | neg) ]
-    </p>
+    <div class="equation-box">
+        $$\text{Log-Odds}(w) = \log \left( \frac{P(w \mid \text{pos})}{P(w \mid \text{neg})} \right)$$
+    </div>
     <p>
         Following the instructor's hint, a higher smoothing parameter ($\alpha = 10.0$) and a minimum frequency threshold ($\ge 5$) 
         were applied to eliminate noisy rare words:
