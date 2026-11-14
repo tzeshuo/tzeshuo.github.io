@@ -21,7 +21,6 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 
-# Set consistent matplotlib styling matching Assignments 1-3
 plt.rcParams.update({
     "font.family": "sans-serif",
     "font.size": 11,
@@ -44,9 +43,6 @@ MEDIA_DIR = BASE_DIR / "media"
 MEDIA_DIR.mkdir(parents=True, exist_ok=True)
 
 
-# ==============================================================================
-# 1. Reading & Splitting Data
-# ==============================================================================
 def read_documents(doc_file, return_categories=False):
     """
     Reads the sentiment dataset.
@@ -70,9 +66,6 @@ def read_documents(doc_file, return_categories=False):
     return docs, labels
 
 
-# ==============================================================================
-# 2. Pure Python Naive Bayes Implementation
-# ==============================================================================
 def train_nb(documents, labels, alpha=1.0):
     """
     Estimates Naive Bayes parameters from training documents and labels.
@@ -82,10 +75,8 @@ def train_nb(documents, labels, alpha=1.0):
     class_counts = Counter(labels)
     classes = list(class_counts.keys())
 
-    # Log prior probabilities: log P(c) = log(N_c / N)
     log_priors = {c: math.log(count / num_docs) for c, count in class_counts.items()}
 
-    # Word frequencies per class
     word_counts = {c: Counter() for c in classes}
     total_words = {c: 0 for c in classes}
     vocab = set()
@@ -97,19 +88,14 @@ def train_nb(documents, labels, alpha=1.0):
 
     vocab_size = len(vocab)
 
-    # Denominators for add-alpha smoothing: sum_w count(w, c) + alpha * (|V| + 1)
-    # Including +1 accounts for the UNK (unseen word) probability mass, ensuring sum_{w in V U {UNK}} P(w | c) = 1
     denominators = {c: total_words[c] + alpha * (vocab_size + 1) for c in classes}
 
-    # Precompute log-likelihoods for seen words: log P(w | c)
-    # log P(w | c) = log( (count(w, c) + alpha) / (total_words[c] + alpha * (|V| + 1)) )
     log_likelihoods = {c: {} for c in classes}
     for c in classes:
         denom = denominators[c]
         for w, count in word_counts[c].items():
             log_likelihoods[c][w] = math.log((count + alpha) / denom)
 
-    # Out-of-vocabulary (unseen word) log-likelihood: log P(UNK | c)
     log_unk = {c: math.log(alpha / denominators[c]) for c in classes}
 
     return {
@@ -171,16 +157,11 @@ def accuracy(true_labels, guessed_labels):
     return correct / len(true_labels)
 
 
-# ==============================================================================
-# 3. Sanity Checks
-# ==============================================================================
 def run_sanity_checks(model):
     print("\n" + "=" * 70)
     print("Sanity Checks")
     print("=" * 70)
 
-    # Sanity check 1: small documents of length 1
-    # Test word 'great'
     doc_great = ["great"]
     log_pos_great = score_doc_label(doc_great, "pos", model)
     log_neg_great = score_doc_label(doc_great, "neg", model)
@@ -193,7 +174,6 @@ def run_sanity_checks(model):
     assert prob_pos_great > prob_neg_great, "Sanity check failed: 'great' should be more positive than negative!"
     print("  => PASS: P(pos, ['great']) > P(neg, ['great'])")
 
-    # Test word 'bad'
     doc_bad = ["bad"]
     log_pos_bad = score_doc_label(doc_bad, "pos", model)
     log_neg_bad = score_doc_label(doc_bad, "neg", model)
@@ -206,7 +186,6 @@ def run_sanity_checks(model):
     assert prob_neg_bad > prob_pos_bad, "Sanity check failed: 'bad' should be more negative than positive!"
     print("  => PASS: P(neg, ['bad']) > P(pos, ['bad'])")
 
-    # Sanity check 2: unseen / rare words phrase
     doc_rare = ["a", "top-quality", "performance"]
     try:
         log_pos_rare = score_doc_label(doc_rare, "pos", model)
@@ -221,16 +200,13 @@ def run_sanity_checks(model):
         raise e
 
 
-# ==============================================================================
-# 4. Error Analysis
-# ==============================================================================
 def run_error_analysis(eval_docs, eval_labels, predictions, model, num_examples=4):
     print("\n" + "=" * 70)
     print("Error Analysis: Examining Misclassified Reviews")
     print("=" * 70)
 
-    false_positives = []  # True negative, guessed positive
-    false_negatives = []  # True positive, guessed negative
+    false_positives = []
+    false_negatives = []
 
     for idx, (doc, true_label, pred_label) in enumerate(zip(eval_docs, eval_labels, predictions)):
         if true_label != pred_label:
@@ -252,7 +228,6 @@ def run_error_analysis(eval_docs, eval_labels, predictions, model, num_examples=
             elif true_label == "pos" and pred_label == "neg":
                 false_negatives.append(item)
 
-    # Sort by largest log-score margin in the wrong direction
     false_positives.sort(key=lambda x: x["diff"], reverse=True)
     false_negatives.sort(key=lambda x: x["diff"], reverse=True)
 
@@ -275,9 +250,6 @@ def run_error_analysis(eval_docs, eval_labels, predictions, model, num_examples=
     return false_positives, false_negatives
 
 
-# ==============================================================================
-# 5. Optional Task 1: Learning Curve
-# ==============================================================================
 def run_learning_curve(train_docs, train_labels, eval_docs, eval_labels):
     print("\n" + "=" * 70)
     print("Optional Task 1: Computing Learning Curve")
@@ -300,7 +272,6 @@ def run_learning_curve(train_docs, train_labels, eval_docs, eval_labels):
         accuracies.append(acc)
         print(f"  Training Size: {n_samples:5d} ({frac*100:5.1f}%) -> Test Accuracy: {acc*100:.2f}%")
 
-    # Plot learning curve
     fig, ax = plt.subplots(figsize=(8, 5))
     ax.plot(train_sizes, [a * 100 for a in accuracies], marker="o", color="#176b68", linewidth=2.2, label="Test Accuracy")
     ax.set_xlabel("Number of Training Documents")
@@ -309,7 +280,6 @@ def run_learning_curve(train_docs, train_labels, eval_docs, eval_labels):
     ax.grid(True, linestyle=":", alpha=0.5)
     ax.set_ylim(min(accuracies) * 100 - 3, max(accuracies) * 100 + 3)
 
-    # Highlight final accuracy
     final_acc = accuracies[-1] * 100
     ax.annotate(f"Final: {final_acc:.2f}%",
                 xy=(train_sizes[-1], final_acc),
@@ -326,9 +296,6 @@ def run_learning_curve(train_docs, train_labels, eval_docs, eval_labels):
     return train_sizes, accuracies
 
 
-# ==============================================================================
-# 6. Optional Task 2: Most Informative Features (Log-Odds Ratio)
-# ==============================================================================
 def print_top_nb(arg1, arg2=None, k=15, alpha=10.0, min_freq=5):
     """
     Finds the words most indicative of positive and negative classes.
@@ -347,7 +314,6 @@ def print_top_nb(arg1, arg2=None, k=15, alpha=10.0, min_freq=5):
     print(f"Optional Task 2: Top {k} Most Informative Features")
     print("=" * 70)
 
-    # Re-estimate likelihoods with higher smoothing (alpha=10.0) as suggested in the PDF
     vocab = model["vocab"]
     word_counts = model["word_counts"]
     total_words = model["total_words"]
@@ -367,8 +333,8 @@ def print_top_nb(arg1, arg2=None, k=15, alpha=10.0, min_freq=5):
         log_odds[w] = math.log(p_pos / p_neg)
 
     sorted_words = sorted(log_odds.items(), key=lambda x: x[1])
-    top_negative = sorted_words[:k]  # Most negative log-odds
-    top_positive = sorted_words[-k:][::-1]  # Most positive log-odds
+    top_negative = sorted_words[:k]
+    top_positive = sorted_words[-k:][::-1]
 
     print(f"{'Rank':<5} | {'Top Positive Words':<22} {'Log-Odds':<10} | {'Top Negative Words':<22} {'Log-Odds':<10}")
     print("-" * 75)
@@ -377,10 +343,8 @@ def print_top_nb(arg1, arg2=None, k=15, alpha=10.0, min_freq=5):
         neg_w, neg_score = top_negative[i]
         print(f"{i+1:<5} | {pos_w:<22} {pos_score:+8.3f}   | {neg_w:<22} {neg_score:+8.3f}")
 
-    # Plot top features
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(13, 6))
 
-    # Top Positive
     pos_words = [x[0] for x in top_positive[::-1]]
     pos_vals = [x[1] for x in top_positive[::-1]]
     ax1.barh(pos_words, pos_vals, color="#2ca02c", alpha=0.85)
@@ -388,7 +352,6 @@ def print_top_nb(arg1, arg2=None, k=15, alpha=10.0, min_freq=5):
     ax1.set_title(f"Top {k} Positive Features")
     ax1.grid(True, linestyle=":", alpha=0.4, axis="x")
 
-    # Top Negative
     neg_words = [x[0] for x in top_negative]
     neg_vals = [abs(x[1]) for x in top_negative]
     ax2.barh(neg_words, neg_vals, color="#d62728", alpha=0.85)
@@ -405,9 +368,6 @@ def print_top_nb(arg1, arg2=None, k=15, alpha=10.0, min_freq=5):
     return top_positive, top_negative
 
 
-# ==============================================================================
-# 7. Optional Task 3: Domain Sensitivity (Cross-Domain Adaptation)
-# ==============================================================================
 def run_domain_adaptation(docs, labels, categories):
     print("\n" + "=" * 70)
     print("Optional Task 3: Domain Sensitivity / Cross-Domain Adaptation")
@@ -416,13 +376,11 @@ def run_domain_adaptation(docs, labels, categories):
     unique_domains = sorted(list(set(categories)))
     print(f"Available Domains ({len(unique_domains)}): {unique_domains}")
 
-    # Organize data by domain
     domain_data = {d: {"docs": [], "labels": []} for d in unique_domains}
     for doc, label, cat in zip(docs, labels, categories):
         domain_data[cat]["docs"].append(doc)
         domain_data[cat]["labels"].append(label)
 
-    # Split each domain 80% train / 20% test
     domain_train = {}
     domain_test = {}
     for d in unique_domains:
@@ -432,7 +390,6 @@ def run_domain_adaptation(docs, labels, categories):
         domain_train[d] = (d_docs[:split], d_labels[:split])
         domain_test[d] = (d_docs[split:], d_labels[split:])
 
-    # Train in-domain models and evaluate on all target domains
     matrix = np.zeros((len(unique_domains), len(unique_domains)))
     for i, src in enumerate(unique_domains):
         src_docs, src_labels = domain_train[src]
@@ -443,7 +400,6 @@ def run_domain_adaptation(docs, labels, categories):
             acc = accuracy(tgt_labels, preds)
             matrix[i, j] = acc
 
-    # Print matrix
     print(f"\nCross-Domain Accuracy Matrix (%): (Rows = Train Source, Columns = Test Target)")
     header = f"{'Source':<10} | " + " | ".join([f"{d[:6]:>6}" for d in unique_domains])
     print(header)
@@ -452,7 +408,6 @@ def run_domain_adaptation(docs, labels, categories):
         row_str = f"{src:<10} | " + " | ".join([f"{matrix[i, j]*100:6.1f}" for j in range(len(unique_domains))])
         print(row_str)
 
-    # Focus on two contrasting domains as requested in PDF prompt: camera vs. books
     idx_cam = unique_domains.index("camera")
     idx_books = unique_domains.index("books")
     cam_in_domain = matrix[idx_cam, idx_cam] * 100
@@ -463,7 +418,6 @@ def run_domain_adaptation(docs, labels, categories):
     print(f"  Camera -> Books Test Accuracy: {cam_to_books:.2f}%")
     print(f"  Accuracy Drop:                {drop:.2f} percentage points")
 
-    # Plot domain adaptation heatmap
     fig, ax = plt.subplots(figsize=(8, 6.5))
     im = ax.imshow(matrix * 100, cmap="YlGnBu", vmin=65, vmax=90)
     ax.set_xticks(range(len(unique_domains)))
@@ -474,7 +428,6 @@ def run_domain_adaptation(docs, labels, categories):
     ax.set_ylabel("Source Training Domain")
     ax.set_title("Optional Task 3: Cross-Domain Transfer Accuracy (%)")
 
-    # Annotate values inside cells
     for i in range(len(unique_domains)):
         for j in range(len(unique_domains)):
             val = matrix[i, j] * 100
@@ -492,9 +445,6 @@ def run_domain_adaptation(docs, labels, categories):
     return matrix, unique_domains
 
 
-# ==============================================================================
-# 8. Optional Task 4: Feature Improvements (Bigrams & Negation Handling)
-# ==============================================================================
 def extract_improved_features(document, use_bigrams=False, use_negation=False):
     """
     Extracts features with optional bigrams and negation prefix tagging.
@@ -509,7 +459,6 @@ def extract_improved_features(document, use_bigrams=False, use_negation=False):
             neg_active = True
             tokens.append(w)
             continue
-        # Reset negation on punctuation markers (if tokenized)
         if w in {".", ",", ";", "!", "?", "but", "however", "although"}:
             neg_active = False
             tokens.append(w)
@@ -553,7 +502,6 @@ def run_feature_improvements(train_docs, train_labels, eval_docs, eval_labels):
         all_preds[name] = preds
         print(f"  {name:<32}: {acc * 100:.2f}% (Vocab: {model['vocab_size']:,} features)")
 
-    # McNemar's test: Baseline vs Unigrams + Bigrams
     base_correct = [p == t for p, t in zip(all_preds["Baseline (Unigrams)"], eval_labels)]
     bigram_correct = [p == t for p, t in zip(all_preds["Unigrams + Bigrams"], eval_labels)]
     b = sum(1 for bc, bg in zip(base_correct, bigram_correct) if bc and not bg)
@@ -568,7 +516,6 @@ def run_feature_improvements(train_docs, train_labels, eval_docs, eval_labels):
     if p_value < 0.05:
         print("    Result: Statistically significant improvement (p < 0.05).")
 
-    # Plot feature comparison
     fig, ax = plt.subplots(figsize=(9, 4.8))
     names = list(results.keys())
     accs = [results[n] * 100 for n in names]
@@ -590,9 +537,6 @@ def run_feature_improvements(train_docs, train_labels, eval_docs, eval_labels):
     return results
 
 
-# ==============================================================================
-# 9. Optional Task 5: Scikit-learn LinearSVC Benchmark Comparison
-# ==============================================================================
 def run_sklearn_benchmark(train_docs, train_labels, eval_docs, eval_labels, custom_acc):
     print("\n" + "=" * 70)
     print("Optional Task 5: Scikit-learn LinearSVC Benchmark")
@@ -604,7 +548,6 @@ def run_sklearn_benchmark(train_docs, train_labels, eval_docs, eval_labels, cust
         from sklearn.feature_extraction.text import TfidfVectorizer
         from sklearn.feature_selection import SelectKBest
 
-        # Convert list of tokens back to text strings for sklearn TfidfVectorizer
         train_texts = [" ".join(doc) for doc in train_docs]
         eval_texts = [" ".join(doc) for doc in eval_docs]
 
@@ -625,15 +568,11 @@ def run_sklearn_benchmark(train_docs, train_labels, eval_docs, eval_labels, cust
         return None
 
 
-# ==============================================================================
-# Main Orchestration
-# ==============================================================================
 def main():
     print("=" * 70)
     print("SYDE 572 - Assignment 4: Text Classification with Naive Bayes")
     print("=" * 70)
 
-    # 1. Load data
     print(f"Loading review data from: {DATA_FILE}")
     all_docs, all_labels, all_categories = read_documents(DATA_FILE, return_categories=True)
     n_total = len(all_docs)
@@ -641,14 +580,12 @@ def main():
     print(f"Class distribution: {Counter(all_labels)}")
     print(f"Topic distribution: {Counter(all_categories)}")
 
-    # 2. 80/20 train/test split
     split_point = int(0.80 * n_total)
     train_docs, eval_docs = all_docs[:split_point], all_docs[split_point:]
     train_labels, eval_labels = all_labels[:split_point], all_labels[split_point:]
     print(f"\nTrain set: {len(train_docs):,} documents (80%)")
     print(f"Eval set:  {len(eval_docs):,} documents (20%)")
 
-    # 3. Train Naive Bayes model
     print("\nTraining custom Naive Bayes classifier (alpha=1.0)...")
     model = train_nb(train_docs, train_labels, alpha=1.0)
     print(f"  Vocabulary size: {model['vocab_size']:,} unique words")
@@ -657,10 +594,8 @@ def main():
     print(f"  Prior log P(pos): {model['log_priors']['pos']:.4f}")
     print(f"  Prior log P(neg): {model['log_priors']['neg']:.4f}")
 
-    # 4. Run sanity checks
     run_sanity_checks(model)
 
-    # 5. Evaluate on test set
     print("\n" + "=" * 70)
     print("Evaluating Classifier on 20% Evaluation Test Set")
     print("=" * 70)
@@ -670,10 +605,8 @@ def main():
     n_correct = sum(1 for t, g in zip(eval_labels, predictions) if t == g)
     print(f"Final Test Accuracy: {test_acc * 100:.2f}% ({n_correct} / {len(eval_labels)} correct)")
 
-    # 6. Error analysis
     false_positives, false_negatives = run_error_analysis(eval_docs, eval_labels, predictions, model)
 
-    # 7. Optional Tasks
     train_sizes, accuracies = run_learning_curve(train_docs, train_labels, eval_docs, eval_labels)
     top_pos, top_neg = print_top_nb(model, k=15, alpha=10.0, min_freq=5)
     domain_matrix, domains = run_domain_adaptation(all_docs, all_labels, all_categories)
@@ -683,7 +616,6 @@ def main():
     print("\n" + "=" * 70)
     print("All Assignment 4 tasks and optional extensions completed successfully!")
     print("=" * 70)
-
 
 if __name__ == "__main__":
     main()

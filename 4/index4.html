@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SYDE 572 - Assignment 4</title>
     <link rel="stylesheet" href="../style.css">
-    <!-- MathJax for high-quality mathematical rendering -->
     <script>
         window.MathJax = {
             tex: {
@@ -25,9 +24,6 @@
     <p class="subtitle">Assignment 4 &mdash; Text Classification with Naive Bayes</p>
     <p><a href="../index.html">&larr; Back to course assignments</a></p>
 
-    <!-- ===================================================================== -->
-    <!-- OVERVIEW -->
-    <!-- ===================================================================== -->
     <h2>Assignment Overview</h2>
     <p>
         In this assignment, we implement a <strong>Multinomial Naive Bayes text classifier from scratch</strong> in pure Python 
@@ -41,9 +37,6 @@
         such as <code>scikit-learn</code>.
     </p>
 
-    <!-- ===================================================================== -->
-    <!-- MATHEMATICAL FORMULATION -->
-    <!-- ===================================================================== -->
     <h2>1. Mathematical Formulation of Naive Bayes</h2>
     <p>
         Given a text document $\mathbf{d}$ represented as a sequence of words $(w_1, w_2, \dots, w_n)$ and a set of candidate classes 
@@ -96,9 +89,6 @@
         All classification decisions are performed strictly in log-space to eliminate numerical underflow, exponentiating back to joint probabilities only for single-word verification.
     </p>
 
-    <!-- ===================================================================== -->
-    <!-- PIPELINE IMPLEMENTATION -->
-    <!-- ===================================================================== -->
     <h2>2. Implementation &amp; Dataset Partitioning</h2>
     <p>
         The complete review dataset consists of <strong>11,914 customer reviews</strong>. In accordance with the assignment guidelines, 
@@ -213,9 +203,6 @@ def classify_nb(document, model):
             best_class = c
     return best_class</code></pre>
 
-    <!-- ===================================================================== -->
-    <!-- SANITY CHECKS -->
-    <!-- ===================================================================== -->
     <h2>3. Sanity Checks &amp; Verification</h2>
     <p>
         Before evaluating on the test set, the classifier was verified against the two mandatory sanity checks described in the assignment:
@@ -261,9 +248,6 @@ def classify_nb(document, model):
         yielding $\log P(\text{pos}, \mathbf{d}) = -26.3663$ and $\log P(\text{neg}, \mathbf{d}) = -27.0375$, correctly predicting <strong>pos</strong>.
     </p>
 
-    <!-- ===================================================================== -->
-    <!-- EVALUATION -->
-    <!-- ===================================================================== -->
     <h2>4. Test Set Evaluation &amp; Accuracy</h2>
     <p>
         Applying the trained Naive Bayes classifier ($\alpha = 1.0$) to the 2,383 unseen test documents yields the following performance:
@@ -311,9 +295,6 @@ def classify_nb(document, model):
         </tbody>
     </table>
 
-    <!-- ===================================================================== -->
-    <!-- ERROR ANALYSIS -->
-    <!-- ===================================================================== -->
     <h2>5. In-Depth Error Analysis</h2>
     <p>
         Of the 2,383 test documents, <strong>440 reviews were misclassified</strong> (193 False Positives and 247 False Negatives). 
@@ -356,9 +337,6 @@ def classify_nb(document, model):
         of a critically acclaimed work rather than the reviewer's appraisal. Naive Bayes cannot distinguish between plot descriptions and product evaluations.
     </p>
 
-    <!-- ===================================================================== -->
-    <!-- OPTIONAL TASK 1: LEARNING CURVE -->
-    <!-- ===================================================================== -->
     <h2>6. Optional Task 1 &mdash; Learning Curve Analysis</h2>
     <p>
         To analyze how data volume influences Naive Bayes performance, models were trained on subsets of increasing size 
@@ -400,9 +378,6 @@ def classify_nb(document, model):
         the simple unigram bag-of-words model shows diminishing returns, with accuracy leveling off around 81–82% on this dataset due to its inability to capture context and grammar.
     </p>
 
-    <!-- ===================================================================== -->
-    <!-- OPTIONAL TASK 2: INFORMATIVE FEATURES -->
-    <!-- ===================================================================== -->
     <h2>7. Optional Task 2 &mdash; Most Informative Features</h2>
     <p>
         To identify the words most strongly indicative of positive and negative reviews, we compute the <strong>log-odds ratio</strong>:
@@ -456,9 +431,6 @@ def classify_nb(document, model):
         as well as domain-specific names and entities such as <em>pluto</em>, <em>illustrator</em>, <em>keaton</em>, and <em>buffy</em>.
     </p>
 
-    <!-- ===================================================================== -->
-    <!-- OPTIONAL TASK 3: DOMAIN SENSITIVITY -->
-    <!-- ===================================================================== -->
     <h2>8. Optional Task 3 &mdash; Domain Sensitivity &amp; Adaptation</h2>
     <p>
         The dataset was created specifically to study <strong>domain adaptation</strong> (Blitzer et al., 2007). 
@@ -488,9 +460,6 @@ def classify_nb(document, model):
         Worse, terms like <em>durable</em> or <em>portable</em> carry no relevance in book evaluations, demonstrating the necessity of domain adaptation techniques.
     </p>
 
-    <!-- ===================================================================== -->
-    <!-- OPTIONAL TASK 4 & 5: FEATURE IMPROVEMENTS & BENCHMARK -->
-    <!-- ===================================================================== -->
     <h2>9. Optional Tasks 4 &amp; 5 &mdash; Feature Improvements &amp; Benchmark</h2>
     <p>
         To address the limitations uncovered in error analysis (negation and word order), we implemented 
