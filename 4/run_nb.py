@@ -38,7 +38,15 @@ plt.rcParams.update({
 np.random.seed(42)
 
 BASE_DIR = Path(__file__).parent
-DATA_FILE = BASE_DIR / "SYDE572 assn4 file" / "all_sentiment_shuffled.txt"
+candidate_paths = [
+    BASE_DIR / "SYDE572 assn4 file" / "all_sentiment_shuffled.txt",
+    BASE_DIR / "all_sentiment_shuffled.txt",
+    Path("SYDE572 assn4 file/all_sentiment_shuffled.txt"),
+    Path("all_sentiment_shuffled.txt"),
+    BASE_DIR.parent / "4" / "SYDE572 assn4 file" / "all_sentiment_shuffled.txt",
+    BASE_DIR.parent / "4" / "all_sentiment_shuffled.txt"
+]
+DATA_FILE = next((p for p in candidate_paths if p.exists()), candidate_paths[0])
 MEDIA_DIR = BASE_DIR / "media"
 MEDIA_DIR.mkdir(parents=True, exist_ok=True)
 

@@ -109,15 +109,15 @@
                 <td><b>Training Set</b></td>
                 <td>9,531</td>
                 <td>80.0%</td>
-                <td>4,809</td>
-                <td>4,722</td>
+                <td>4,847</td>
+                <td>4,684</td>
             </tr>
             <tr>
                 <td><b>Evaluation Test Set</b></td>
                 <td>2,383</td>
                 <td>20.0%</td>
-                <td>1,191</td>
-                <td>1,192</td>
+                <td>1,153</td>
+                <td>1,230</td>
             </tr>
             <tr style="font-weight: bold; background: rgba(23, 107, 104, 0.08);">
                 <td>Total Collection</td>
@@ -257,6 +257,9 @@ def classify_nb(document, model):
         <p style="font-size: 1.8rem; font-weight: bold; margin: 8px 0; color: var(--accent);">
             81.54% <span style="font-size: 1.0rem; font-weight: normal; color: var(--muted);">(1,943 / 2,383 reviews correctly classified)</span>
         </p>
+        <p style="margin: 6px 0 0; color: var(--text);">
+            <strong>95% Confidence Interval:</strong> 81.54% &plusmn; 1.56% ([79.98%, 83.09%])
+        </p>
     </div>
 
     <h3>Confusion Matrix</h3>
@@ -273,68 +276,74 @@ def classify_nb(document, model):
         <tbody>
             <tr>
                 <td><b>Actual Positive</b></td>
-                <td><b>944</b> (True Positive)</td>
+                <td><b>906</b> (True Positive)</td>
                 <td>247 (False Negative)</td>
-                <td>1,191</td>
-                <td>79.26%</td>
+                <td>1,153</td>
+                <td>78.58%</td>
             </tr>
             <tr>
                 <td><b>Actual Negative</b></td>
                 <td>193 (False Positive)</td>
-                <td><b>999</b> (True Negative)</td>
-                <td>1,192</td>
-                <td>83.81%</td>
+                <td><b>1,037</b> (True Negative)</td>
+                <td>1,230</td>
+                <td>84.31%</td>
             </tr>
             <tr style="font-weight: bold; background: rgba(23, 107, 104, 0.08);">
                 <td>Total Predicted</td>
-                <td>1,137</td>
-                <td>1,246</td>
+                <td>1,099</td>
+                <td>1,284</td>
                 <td>2,383</td>
                 <td>81.54%</td>
             </tr>
         </tbody>
     </table>
 
+    <p>
+        <strong>Smoothing Sensitivity Analysis (Assignment Hint 2):</strong> 
+        Evaluating different values of the Laplace parameter $\alpha$ confirms that smoothing significantly improves accuracy over empirical frequencies: 
+        $\alpha = 0.01 \to 77.26\%$, $\alpha = 0.1 \to 79.35\%$, $\alpha = 1.0 \to \mathbf{81.54\%}$, and $\alpha = 2.0 \to 81.54\%$. 
+        The standard default of $\alpha = 1.0$ provides the ideal regularization on this corpus.
+    </p>
+
     <h2>5. In-Depth Error Analysis</h2>
     <p>
         Of the 2,383 test documents, <strong>440 reviews were misclassified</strong> (193 False Positives and 247 False Negatives). 
         Because the Naive Bayes conditional independence assumption multiplies evidence additively in log-space, the resulting joint log-score difference 
         ($|\log P(\text{pos}, \mathbf{d}) - \log P(\text{neg}, \mathbf{d})|$) represents an uncalibrated <strong>log-score margin</strong> rather than a true calibrated posterior probability. 
-        A qualitative analysis of failure cases exhibiting the largest log-score margin in the wrong direction reveals three primary mechanisms causing Naive Bayes errors:
+        A qualitative analysis of failure cases exhibiting the largest log-score margin in the wrong direction reveals three primary failure modes:
     </p>
 
-    <h3>1. The Negation Blindspot (Bag-of-Words Limitation)</h3>
-    <p>
-        Because standard Naive Bayes treats words independently, it cannot capture the scope of negation words such as <em>not, n't, never</em>:
-    </p>
+    <h3>1. Literary Concessions vs. Evaluative Verdict ("Breathing Lessons")</h3>
     <blockquote style="background: var(--paper); border-left: 4px solid #d62728; padding: 10px 16px; margin: 12px 0;">
-        <em>&ldquo;...here 's a good litmus test to show how good a book like breathing lessons is - nothing extraordinary happens and yet <strong>i did not want to put it down</strong>...&rdquo;</em>
-        <br><small style="color: var(--muted);">True Label: POS | Predicted: NEG | Log-Odds Margin: 26.56 in favor of NEG</small>
+        <em>&ldquo;here 's a good litmus test to show how good a book like breathing lessons is - nothing extraordinary happens and yet i did not want to put the book down ... some people may call this boring or dull , but i would call it purely exceptional . i loved this book and highly recommend it&rdquo;</em>
+        <br><small style="color: var(--muted);">True Label: POS | Predicted: NEG | Log-Score Margin: 26.56 in favor of NEG</small>
     </blockquote>
     <p>
-        Here, the reviewer expressed high praise by stating they <em>&ldquo;did not want to put it down&rdquo;</em>. However, the classifier penalized 
-        the phrase heavily due to the negative tokens <em>not</em> and <em>put down</em>, failing to capture the intended positive sentiment of the phrase.
-    </p>
-
-    <h3>2. Sarcasm and Thwarted Expectations</h3>
-    <blockquote style="background: var(--paper); border-left: 4px solid #d62728; padding: 10px 16px; margin: 12px 0;">
-        <em>&ldquo;we bought this camera thinking that it would be our do-all eurocam for an upcoming trip to europe . it promised a sufficient range of performance and great features ... but it completely failed on day two.&rdquo;</em>
-        <br><small style="color: var(--muted);">True Label: NEG | Predicted: POS | Log-Odds Margin: 127.14 in favor of POS</small>
-    </blockquote>
-    <p>
-        The customer spent the first 500 words describing the high expectations, advertised features, and positive promises of the camera before delivering 
-        a concise negative verdict at the end. Because Naive Bayes tallies word counts additively, the sheer quantity of positive descriptive adjectives 
-        overwhelmed the negative conclusion.
+        <strong>Error Mechanism:</strong> The reviewer employs a rhetorical concession, anticipating potential criticisms by acknowledging that 
+        <em>nothing extraordinary happens</em> and that others might describe the novel as <em>boring</em> or <em>dull</em>, only to refute those critiques by declaring the book <em>purely exceptional</em>. 
+        Because Naive Bayes accumulates log-likelihoods additively across words, high-frequency negative tokens (such as <em>dull</em>, <em>boring</em>, and <em>nothing</em>) 
+        substantively outweighed the positive appraisal terms at the end, causing a false negative prediction.
     </p>
 
-    <h3>3. Secondary Narrative vs. Evaluative Sentiment</h3>
+    <h3>2. Exhaustive Feature Dissection in Hardware Reviews (Camera Review)</h3>
     <blockquote style="background: var(--paper); border-left: 4px solid #d62728; padding: 10px 16px; margin: 12px 0;">
-        <em>&ldquo;the decalogue is one of several excellent tv series by european directors ... exploring murder, betrayal, horrible despair and tragic loss.&rdquo;</em>
-        <br><small style="color: var(--muted);">True Label: POS | Predicted: NEG | Log-Odds Margin: 44.10 in favor of NEG</small>
+        <em>&ldquo;we bought this camera thinking that it would be our do-all eurocam for an upcoming trip to europe . it promised a sufficient range of performance and features ... sadly , the camera is not up to filling this role ... the camera 's performance and ease of use is below that of similarly priced p&s cameras currently on the market . if you need a true wide-angle p&s , you need this camera . otherwise forget it&rdquo;</em>
+        <br><small style="color: var(--muted);">True Label: NEG | Predicted: POS | Log-Score Margin: 127.14 in favor of POS</small>
     </blockquote>
     <p>
-        In artistic reviews (books and films), negative descriptive words (<em>murder, betrayal, tragic, horrible</em>) often describe the dark thematic content 
-        of a critically acclaimed work rather than the reviewer's appraisal. Naive Bayes cannot distinguish between plot descriptions and product evaluations.
+        <strong>Error Mechanism:</strong> This massive review (2,644 words) provides an exhaustive technical analysis evaluating every feature, lens setting, and compression mode. 
+        In sentiment corpora, technical specifications frequently use nouns that correlate positively with praise in general reviews (e.g., <em>lens</em> appears 22 times, contributing over +18 log units toward positive). 
+        The sheer cumulative length of descriptive specifications completely submerged the customer's actual negative verdict (<em>"below that of similarly priced p&s cameras... otherwise forget it"</em>).
+    </p>
+
+    <h3>3. Artistic Content Praise vs. Physical Media Defects ("The Decalogue")</h3>
+    <blockquote style="background: var(--paper); border-left: 4px solid #d62728; padding: 10px 16px; margin: 12px 0;">
+        <em>&ldquo;the decalogue is one of several excellent tv series by european directors that puts us tv to shame ... apparently all of the other ( imported ) editions of the dekalog are of better quality & offer more extras than this edition , which is inexcusable given the price&rdquo;</em>
+        <br><small style="color: var(--muted);">True Label: NEG | Predicted: POS | Log-Score Margin: 44.10 in favor of POS</small>
+    </blockquote>
+    <p>
+        <strong>Error Mechanism:</strong> The reviewer opens with glowing praise for the cinematic masterpiece itself (<em>excellent</em>, <em>puts us tv to shame</em>), but writes a 1-star negative review targeting the distributor's low-quality North American DVD release (poor compression, absence of features, and high cost compared to imported editions). 
+        Because Naive Bayes treats all words in a document uniformly, praise for the artistic content overwhelmed the criticism of the physical product, producing a False Positive.
     </p>
 
     <h2>6. Optional Task 1 &mdash; Learning Curve Analysis</h2>
@@ -447,17 +456,19 @@ def classify_nb(document, model):
     <h3>Camera vs. Books Domain Adaptation (Assignment Question)</h3>
     <p>
         The assignment specifically asks to examine the performance impact when training a classifier on <strong>camera reviews</strong> 
-        and testing it on <strong>book reviews</strong>:
+        and testing it on <strong>book reviews</strong>. We evaluate this cross-domain drop through two complementary perspectives:
     </p>
     <ul>
-        <li><b>Camera In-Domain Accuracy:</b> <strong>86.75%</strong> (Trained on Camera, Tested on Camera)</li>
-        <li><b>Camera &rarr; Books Transfer Accuracy:</b> <strong>70.50%</strong> (Trained on Camera, Tested on Books)</li>
-        <li><b>Performance Drop:</b> <b style="color: #d62728;">16.25 percentage points</b></li>
+        <li><b>Source In-Domain Baseline (Camera &rarr; Camera):</b> <strong>86.75%</strong></li>
+        <li><b>Target In-Domain Baseline (Books &rarr; Books):</b> <strong>79.80%</strong></li>
+        <li><b>Cross-Domain Transfer (Camera &rarr; Books):</b> <strong>70.50%</strong></li>
+        <li><b>Drop vs. Camera Baseline:</b> <b style="color: #d62728;">16.25 percentage points</b> (from 86.75% to 70.50%)</li>
+        <li><b>Drop vs. Books In-Domain Baseline:</b> <b style="color: #d62728;">9.30 percentage points</b> (from 79.80% to 70.50% on the identical test set)</li>
     </ul>
     <p>
-        <strong>Why does this drop occur?</strong> Camera reviews utilize technical hardware vocabulary (<em>megapixels, lens, battery, autofocus, sensor</em>). 
+        <strong>Why does this drop occur?</strong> Camera reviews rely on technical hardware vocabulary (<em>megapixels, lens, battery, autofocus, sensor</em>). 
         When applied to books, many of these domain-specific features are largely absent or much less relevant, forcing the model to rely only on general sentiment words. 
-        Worse, terms like <em>durable</em> or <em>portable</em> carry no relevance in book evaluations, demonstrating the necessity of domain adaptation techniques.
+        Furthermore, terms like <em>durable</em> or <em>portable</em> carry no relevance in book evaluations, demonstrating the necessity of domain adaptation techniques.
     </p>
 
     <h2>9. Optional Tasks 4 &amp; 5 &mdash; Feature Improvements &amp; Benchmark</h2>
@@ -479,7 +490,7 @@ def classify_nb(document, model):
                 <th>Model &amp; Feature Configuration</th>
                 <th>Vocabulary Size</th>
                 <th>Test Accuracy</th>
-                <th>Performance Gain</th>
+                <th>Gain (Percentage Points)</th>
             </tr>
         </thead>
         <tbody>
@@ -493,32 +504,39 @@ def classify_nb(document, model):
                 <td><b>Naive Bayes + Negation Tagging (NOT_)</b></td>
                 <td>63,337</td>
                 <td>81.12%</td>
-                <td>-0.42%</td>
+                <td>-0.42 pts</td>
             </tr>
             <tr>
                 <td><b>Naive Bayes + Unigrams &amp; Bigrams</b></td>
                 <td>484,472</td>
                 <td><b>85.69%</b></td>
-                <td><b style="color: #2ca02c;">+4.15%</b></td>
+                <td><b style="color: #2ca02c;">+4.15 pts</b></td>
             </tr>
             <tr>
                 <td><b>Naive Bayes + Bigrams &amp; Negation</b></td>
                 <td>530,623</td>
                 <td><b>85.86%</b></td>
-                <td><b style="color: #2ca02c;">+4.32%</b></td>
+                <td><b style="color: #2ca02c;">+4.32 pts</b></td>
             </tr>
             <tr style="font-weight: bold; background: rgba(23, 107, 104, 0.08);">
                 <td>Scikit-learn LinearSVC Benchmark (TF-IDF)</td>
                 <td>25,000</td>
                 <td>85.52%</td>
-                <td>+3.98%</td>
+                <td>+3.98 pts</td>
             </tr>
         </tbody>
     </table>
 
+    <p>
+        <strong>Why did Negation Tagging alone slightly decrease performance?</strong> 
+        Prefixing words in negative contexts with <code>NOT_</code> expanded the feature space by nearly 11,000 tokens (from 52,392 to 63,337). 
+        Because many negated words occurred only once or twice in the training set, this created significant data sparsity without enough statistical mass per token. 
+        However, when combined with bigrams, negation tagging regained positive traction (+4.32 percentage points).
+    </p>
+
     <h3>Statistical Significance (McNemar's Test)</h3>
     <p>
-        To determine whether the <strong>+4.15%</strong> improvement from bigrams is statistically significant over the unigram baseline rather than random sample variation, 
+        To determine whether the <strong>+4.15 percentage point</strong> improvement from bigrams is statistically significant over the unigram baseline rather than random sample variation, 
         we performed <strong>McNemar's test with continuity correction</strong> on the discordant test predictions:
     </p>
     <ul>
@@ -532,11 +550,11 @@ def classify_nb(document, model):
     </p>
 
     <p>
-        <strong>Key Discovery:</strong> Expanding the feature space to include <strong>bigrams</strong> produces a dramatic 
-        <strong>+4.15% surge in accuracy</strong> (from 81.54% to 85.69%). Bigrams naturally capture collocations and local negations 
-        (e.g., <em>not_good, waste_of_money, must_read</em>) without heuristic rules. In fact, our custom Naive Bayes with bigrams 
-        (<strong>85.86%</strong>) slightly outperforms scikit-learn's optimized <code>LinearSVC</code> (85.52%), demonstrating that 
-        generative probabilistic models remain highly competitive when paired with rich n-gram features.
+        <strong>Key Discovery:</strong> Expanding the feature space to include <strong>bigrams</strong> produces a substantial 
+        <strong>+4.15 percentage point gain</strong> (from 81.54% to 85.69%). Bigrams naturally capture collocations and local negations 
+        (e.g., <em>not_good, waste_of, of_money, must_read</em>) without heuristic rules. 
+        Our custom Naive Bayes with bigrams (<strong>85.86%</strong>) performs on par with scikit-learn's optimized <code>LinearSVC</code> (85.52%, a marginal difference of only 0.34 percentage points), 
+        demonstrating that generative probabilistic models remain highly competitive with discriminative linear classifiers when paired with rich n-gram features.
     </p>
 
     <hr style="margin-top: 48px; border: 0; border-top: 1px solid var(--line);">
