@@ -327,8 +327,8 @@ def print_top_nb(arg1, arg2=None, k=15, alpha=10.0, min_freq=5):
     total_words = model["total_words"]
     vocab_size = len(vocab)
 
-    denom_pos = total_words["pos"] + alpha * vocab_size
-    denom_neg = total_words["neg"] + alpha * vocab_size
+    denom_pos = total_words["pos"] + alpha * (vocab_size + 1)
+    denom_neg = total_words["neg"] + alpha * (vocab_size + 1)
 
     log_odds = {}
     for w in vocab:
@@ -591,8 +591,8 @@ def main():
     split_point = int(0.80 * n_total)
     train_docs, eval_docs = all_docs[:split_point], all_docs[split_point:]
     train_labels, eval_labels = all_labels[:split_point], all_labels[split_point:]
-    print(f"\nTrain set: {len(train_docs):,} documents (80%)")
-    print(f"Eval set:  {len(eval_docs):,} documents (20%)")
+    print(f"\nTrain set: {len(train_docs):,} documents (80%) | Distribution: {Counter(train_labels)}")
+    print(f"Eval set:  {len(eval_docs):,} documents (20%) | Distribution: {Counter(eval_labels)}")
 
     print("\nTraining custom Naive Bayes classifier (alpha=1.0)...")
     model = train_nb(train_docs, train_labels, alpha=1.0)
@@ -611,7 +611,11 @@ def main():
     test_acc = accuracy(eval_labels, predictions)
     n_eval = len(eval_labels)
     n_correct = sum(1 for t, g in zip(eval_labels, predictions) if t == g)
-    print(f"Final Test Accuracy: {test_acc * 100:.2f}% ({n_correct} / {len(eval_labels)} correct)")
+    se = math.sqrt(test_acc * (1.0 - test_acc) / n_eval)
+    ci_lower = (test_acc - 1.96 * se) * 100
+    ci_upper = (test_acc + 1.96 * se) * 100
+    print(f"Final Test Accuracy: {test_acc * 100:.2f}% ({n_correct} / {n_eval} correct)")
+    print(f"95% Confidence Interval: [{ci_lower:.2f}%, {ci_upper:.2f}%]")
 
     false_positives, false_negatives = run_error_analysis(eval_docs, eval_labels, predictions, model)
 

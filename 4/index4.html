@@ -384,7 +384,8 @@ def classify_nb(document, model):
     <p>
         <strong>Observation:</strong> Accuracy rises steeply from 71.93% at 5% data to ~79.40% at 40% data, after which performance gains 
         gradually plateau. This indicates that while vocabulary coverage increases with more data (reaching 52,392 words), 
-        the simple unigram bag-of-words model shows diminishing returns, with accuracy leveling off around 81–82% on this dataset due to its inability to capture context and grammar.
+        the simple unigram bag-of-words model shows diminishing returns, with accuracy leveling off around 81–82% on this dataset, 
+        consistent with the limitation that unigram features do not explicitly capture word order, context, or grammar.
     </p>
 
     <h2>7. Optional Task 2 &mdash; Most Informative Features</h2>
