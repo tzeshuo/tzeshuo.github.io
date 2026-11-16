@@ -545,26 +545,39 @@ def run_feature_improvements(train_docs, train_labels, eval_docs, eval_labels):
     return results
 
 
+def train_sklearn(docs, labels):
+    """
+    Trains a scikit-learn LinearSVC text classification pipeline matching the assignment PDF.
+    Uses preprocessor=None, tokenizer=identity to process pre-tokenized documents.
+    """
+    from sklearn.svm import LinearSVC
+    from sklearn.pipeline import make_pipeline
+    from sklearn.feature_extraction.text import TfidfVectorizer
+    from sklearn.feature_selection import SelectKBest
+
+    vec = TfidfVectorizer(preprocessor=lambda x: x, tokenizer=lambda x: x, token_pattern=None)
+    sel = SelectKBest(k="all")
+    clf = LinearSVC(dual=False, max_iter=2000, random_state=42)
+    pipeline = make_pipeline(vec, sel, clf)
+    pipeline.fit(docs, labels)
+    return pipeline
+
+
+def classify_documents_sklearn(docs, model):
+    """
+    Classifies documents using the fitted scikit-learn pipeline matching the assignment PDF.
+    """
+    return model.predict(docs)
+
+
 def run_sklearn_benchmark(train_docs, train_labels, eval_docs, eval_labels, custom_acc):
     print("\n" + "=" * 70)
     print("Optional Task 5: Scikit-learn LinearSVC Benchmark")
     print("=" * 70)
 
     try:
-        from sklearn.svm import LinearSVC
-        from sklearn.pipeline import make_pipeline
-        from sklearn.feature_extraction.text import TfidfVectorizer
-        from sklearn.feature_selection import SelectKBest
-
-        train_texts = [" ".join(doc) for doc in train_docs]
-        eval_texts = [" ".join(doc) for doc in eval_docs]
-
-        pipeline = make_pipeline(
-            TfidfVectorizer(max_features=25000),
-            LinearSVC(dual=False, max_iter=2000, random_state=42)
-        )
-        pipeline.fit(train_texts, train_labels)
-        preds = pipeline.predict(eval_texts)
+        pipeline = train_sklearn(train_docs, train_labels)
+        preds = classify_documents_sklearn(eval_docs, pipeline)
         svc_acc = accuracy(eval_labels, preds)
 
         print(f"  Custom Naive Bayes Accuracy:  {custom_acc * 100:.2f}%")
@@ -574,6 +587,17 @@ def run_sklearn_benchmark(train_docs, train_labels, eval_docs, eval_labels, cust
     except Exception as e:
         print(f"  Could not run sklearn benchmark: {e}")
         return None
+
+
+def run_six_category_classifier(train_docs, train_cats, eval_docs, eval_cats):
+    print("\n" + "=" * 70)
+    print("Optional Task: Six-Category Topic Classifier")
+    print("=" * 70)
+    topic_model = train_nb(train_docs, train_cats, alpha=1.0)
+    preds = classify_documents(eval_docs, topic_model)
+    acc = accuracy(eval_cats, preds)
+    print(f"  6-Category Topic Accuracy: {acc * 100:.2f}% (Chance baseline: 16.67%)")
+    return acc
 
 
 def main():
@@ -591,6 +615,7 @@ def main():
     split_point = int(0.80 * n_total)
     train_docs, eval_docs = all_docs[:split_point], all_docs[split_point:]
     train_labels, eval_labels = all_labels[:split_point], all_labels[split_point:]
+    train_cats, eval_cats = all_categories[:split_point], all_categories[split_point:]
     print(f"\nTrain set: {len(train_docs):,} documents (80%) | Distribution: {Counter(train_labels)}")
     print(f"Eval set:  {len(eval_docs):,} documents (20%) | Distribution: {Counter(eval_labels)}")
 
@@ -624,6 +649,7 @@ def main():
     domain_matrix, domains = run_domain_adaptation(all_docs, all_labels, all_categories)
     feature_results = run_feature_improvements(train_docs, train_labels, eval_docs, eval_labels)
     svc_acc = run_sklearn_benchmark(train_docs, train_labels, eval_docs, eval_labels, test_acc)
+    six_cat_acc = run_six_category_classifier(train_docs, train_cats, eval_docs, eval_cats)
 
     print("\n" + "=" * 70)
     print("All Assignment 4 tasks and optional extensions completed successfully!")

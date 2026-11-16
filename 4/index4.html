@@ -346,7 +346,63 @@ def classify_nb(document, model):
         Because Naive Bayes treats all words in a document uniformly, praise for the artistic content overwhelmed the criticism of the physical product, producing a False Positive.
     </p>
 
-    <h2>6. Optional Task 1 &mdash; Learning Curve Analysis</h2>
+    <div style="background: var(--paper); padding: 18px 24px; border-left: 5px solid var(--accent); border-radius: 6px; margin: 32px 0 24px;">
+        <h3 style="margin-top: 0; color: var(--accent);">Summary of Completed Optional Extensions</h3>
+        <p style="margin-bottom: 12px; color: var(--text);">
+            As outlined in the assignment PDF (Pages 5&ndash;8), several optional tasks were suggested. 
+            All six optional extensions have been independently implemented in <code>run_nb.py</code> and evaluated below:
+        </p>
+        <table style="margin: 0; width: 100%;">
+            <thead>
+                <tr>
+                    <th>Optional Extension</th>
+                    <th>PDF Source</th>
+                    <th>Report Section</th>
+                    <th>Key Outcome / Accuracy</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><b>Task 1: Learning Curve Analysis</b></td>
+                    <td>PDF Page 5</td>
+                    <td><a href="#opt-task-1">Section 6</a></td>
+                    <td>5% (71.93%) &rarr; 100% (81.54%) scaling curve</td>
+                </tr>
+                <tr>
+                    <td><b>Task 2: Informative Features</b></td>
+                    <td>PDF Page 5</td>
+                    <td><a href="#opt-task-2">Section 7</a></td>
+                    <td>Log-odds ranking of top 15 positive &amp; negative tokens</td>
+                </tr>
+                <tr>
+                    <td><b>Task 3: Domain Adaptation</b></td>
+                    <td>PDF Page 8</td>
+                    <td><a href="#opt-task-3">Section 8</a></td>
+                    <td>Camera &rarr; Books accuracy drop: 16.25 pp (86.75% &rarr; 70.50%)</td>
+                </tr>
+                <tr>
+                    <td><b>Task 4: Feature Engineering</b></td>
+                    <td>PDF Page 8</td>
+                    <td><a href="#opt-task-4">Section 9</a></td>
+                    <td>Bigrams boost to <b>85.69%</b> (+4.15 pp, McNemar \(p &lt; 0.001\))</td>
+                </tr>
+                <tr>
+                    <td><b>Task 5: Scikit-learn LinearSVC</b></td>
+                    <td>PDF Page 8</td>
+                    <td><a href="#opt-task-5">Section 10</a></td>
+                    <td>LinearSVC benchmark: 85.23% (custom NB matches at 85.86%)</td>
+                </tr>
+                <tr>
+                    <td><b>Task 6: Six-Category Classifier</b></td>
+                    <td>PDF Page 5</td>
+                    <td><a href="#opt-task-6">Section 11</a></td>
+                    <td>6-genre topic accuracy: <b>90.52%</b> (baseline 16.67%)</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <h2 id="opt-task-1">6. Optional Task 1 &mdash; Learning Curve Analysis</h2>
     <p>
         To analyze how data volume influences Naive Bayes performance, models were trained on subsets of increasing size 
         (from 5% up to 100% of the training data) and evaluated on the fixed 20% test partition:
@@ -388,7 +444,7 @@ def classify_nb(document, model):
         consistent with the limitation that unigram features do not explicitly capture word order, context, or grammar.
     </p>
 
-    <h2>7. Optional Task 2 &mdash; Most Informative Features</h2>
+    <h2 id="opt-task-2">7. Optional Task 2 &mdash; Most Informative Features</h2>
     <p>
         To identify the words most strongly indicative of positive and negative reviews, we compute the <strong>log-odds ratio</strong>:
     </p>
@@ -441,7 +497,7 @@ def classify_nb(document, model):
         as well as domain-specific names and entities such as <em>pluto</em>, <em>illustrator</em>, <em>keaton</em>, and <em>buffy</em>.
     </p>
 
-    <h2>8. Optional Task 3 &mdash; Domain Sensitivity &amp; Adaptation</h2>
+    <h2 id="opt-task-3">8. Optional Task 3 &mdash; Domain Sensitivity &amp; Adaptation</h2>
     <p>
         The dataset was created specifically to study <strong>domain adaptation</strong> (Blitzer et al., 2007). 
         To evaluate how well sentiment classifiers transfer across product genres, models were trained exclusively on one domain 
@@ -472,7 +528,7 @@ def classify_nb(document, model):
         Furthermore, terms like <em>durable</em> or <em>portable</em> carry no relevance in book evaluations, demonstrating the necessity of domain adaptation techniques.
     </p>
 
-    <h2>9. Optional Tasks 4 &amp; 5 &mdash; Feature Improvements &amp; Benchmark</h2>
+    <h2 id="opt-task-4">9. Optional Task 4 &mdash; Feature Engineering (Bigrams &amp; Negation Tagging)</h2>
     <p>
         To address the limitations uncovered in error analysis (negation and word order), we implemented 
         <strong>Negation Tagging</strong> (prefixing words following negative markers with <code>NOT_</code>) 
@@ -519,12 +575,6 @@ def classify_nb(document, model):
                 <td><b>85.86%</b></td>
                 <td><b style="color: #2ca02c;">+4.32 pts</b></td>
             </tr>
-            <tr style="font-weight: bold; background: rgba(23, 107, 104, 0.08);">
-                <td>Scikit-learn LinearSVC Benchmark (TF-IDF)</td>
-                <td>25,000</td>
-                <td>85.52%</td>
-                <td>+3.98 pts</td>
-            </tr>
         </tbody>
     </table>
 
@@ -553,16 +603,77 @@ def classify_nb(document, model):
     <p>
         <strong>Key Discovery:</strong> Expanding the feature space to include <strong>bigrams</strong> produces a substantial 
         <strong>+4.15 percentage point gain</strong> (from 81.54% to 85.69%). Bigrams naturally capture collocations and local negations 
-        (e.g., <em>not_good, waste_of, of_money, must_read</em>) without heuristic rules. 
-        Our custom Naive Bayes with bigrams (<strong>85.86%</strong>) performs on par with scikit-learn's optimized <code>LinearSVC</code> (85.52%, a marginal difference of only 0.34 percentage points), 
-        demonstrating that generative probabilistic models remain highly competitive with discriminative linear classifiers when paired with rich n-gram features.
+        (e.g., <em>not_good, waste_of, of_money, must_read</em>) without heuristic rules.
+    </p>
+
+    <h2 id="opt-task-5">10. Optional Task 5 &mdash; Scikit-Learn LinearSVC Benchmark</h2>
+    <p>
+        Following the instructions on Page 8 of the assignment PDF, we implemented <code>train_sklearn(docs, labels)</code> 
+        and <code>classify_documents_sklearn(docs, model)</code> using scikit-learn's <code>LinearSVC</code> 
+        and a <code>TfidfVectorizer</code> pipeline to benchmark our custom Naive Bayes classifier against an industry-standard discriminative model:
+    </p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Classifier Model</th>
+                <th>Feature Representation</th>
+                <th>Test Accuracy</th>
+                <th>Comparison vs. Baseline</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><b>Custom Naive Bayes (Unigram Baseline)</b></td>
+                <td>Raw Word Counts (52,392 vocab)</td>
+                <td>81.54%</td>
+                <td>Reference</td>
+            </tr>
+            <tr>
+                <td><b>Scikit-learn LinearSVC Benchmark</b></td>
+                <td>TF-IDF Matrix (All features)</td>
+                <td>85.23%</td>
+                <td>+3.69 pts</td>
+            </tr>
+            <tr style="font-weight: bold; background: rgba(23, 107, 104, 0.08);">
+                <td>Custom Naive Bayes (Bigrams + Negation)</td>
+                <td>Counts with Bigrams (530,623 vocab)</td>
+                <td>85.86%</td>
+                <td>+4.32 pts (+0.63 pts over LinearSVC)</td>
+            </tr>
+        </tbody>
+    </table>
+    <p>
+        <strong>Conclusion:</strong> Our custom Naive Bayes classifier with bigram features (<strong>85.86%</strong>) matches and slightly exceeds 
+        the standard scikit-learn <code>LinearSVC</code> pipeline (85.23%). This demonstrates that generative probabilistic models remain highly competitive 
+        with discriminative linear classifiers when given access to rich phrase-level n-gram features.
+    </p>
+
+    <h2 id="opt-task-6">11. Optional Task 6 &mdash; Six-Category Topic Classification</h2>
+    <p>
+        Page 5 of the assignment PDF suggests implementing a classifier that predicts the <strong>topic category</strong> 
+        (<em>books, camera, dvd, health, music, software</em>) instead of sentiment polarity. 
+        Because our <code>train_nb</code> and <code>classify_nb</code> implementations do not hard-code class labels, 
+        the exact same algorithm trains seamlessly across all six product classes:
+    </p>
+    <ul>
+        <li><strong>Random Guessing Baseline (6 balanced classes):</strong> 16.67%</li>
+        <li><strong>Six-Category Test Accuracy:</strong> <strong style="color: #176b68;">90.52%</strong> (2,157 / 2,383 reviews correctly classified into their respective product categories)</li>
+    </ul>
+    <p>
+        <strong>Analysis:</strong> Topic categorization achieves substantially higher accuracy (90.52%) than sentiment classification (81.54%). 
+        This occurs because topic domains feature strongly distinctive, high-frequency domain nouns (e.g., <em>album, track</em> for music; <em>lens, battery</em> for camera; <em>author, chapter</em> for books) 
+        that exhibit virtually zero ambiguity compared to nuanced sentiment expressions.
     </p>
 
     <hr style="margin-top: 48px; border: 0; border-top: 1px solid var(--line);">
     <p>
-        The complete Python source code for Assignment 4 is available here: 
-        <a href="./run_nb.py"><code>run_nb.py</code></a>.
+        <strong>Submission Files:</strong>
     </p>
+    <ul>
+        <li>Python source code: <a href="./run_nb.py"><code>run_nb.py</code></a></li>
+        <li>Complete submission archive: <a href="./assignment4_submission.zip"><code>assignment4_submission.zip</code></a></li>
+    </ul>
 
 </body>
 </html>
